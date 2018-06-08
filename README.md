@@ -54,7 +54,6 @@ Global configuration and properties are available in the _configuration.json_ fi
 {
   "bootstrap.servers": "localhost:9092"
 }
-
 ```
 
 ## Writing tests
