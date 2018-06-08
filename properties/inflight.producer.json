@@ -1,0 +1,9 @@
+{
+  "test": "inflight",
+  "type": "producer",
+  "properties": {
+		"linger.ms": 10,
+		"batch.size": [1024,4096,8192,16384,32768,65536,131072,262144,524288,614400,714400,814400,914400],
+		"max.in.flight.requests.per.connection": [1,2,3,4,5,6,7,8,9,10]
+  }
+}

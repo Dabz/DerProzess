@@ -1,0 +1,8 @@
+{
+  "test": "fetch",
+  "type": "consumer",
+  "properties": {
+		"max.partition.fetch.bytes": [1024,4096,8192,16384,24576,32768,16553,32768,46080,69120,138240],
+		"max.poll.records": 1000
+  }
+}

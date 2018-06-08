@@ -1,0 +1,9 @@
+{
+  "test": "compression",
+  "type": "producer",
+  "properties": {
+		"linger.ms": 10,
+		"batch.size": 524288,
+		"compression.type": ["none", "gzip", "snappy", "lz4"]
+  }
+}
