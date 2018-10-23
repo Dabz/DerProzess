@@ -178,7 +178,9 @@ class BenchTest:
         try:
             subprocess.check_output("kafka-topics --zookeeper %s --topic __driver --create --replication-factor 1 --partitions 32 --config retention.bytes=21474836480" % CONF["zookeeper"], shell=True)
         except subprocess.CalledProcessError as e:
+            print("Can not create required topic __driver!")
             print(e.output)
+            sys.exit(1)
 
         if not self.test_type == "producer":
             print("generating some data for %s..." % (self.test_name))
