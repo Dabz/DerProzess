@@ -13,7 +13,6 @@ The following application need to be available in your path as a prerequisites:
 * python-devel: Requirement for matplotlib
 * pip: To install all required libraries
 * kafka-topics: Used in the benchmarker to create and delete topic 
-* dstat: Used to gather performance metrics
 * maven: Used to build the java driver
 
 To install the required libraries in python, please execute:
