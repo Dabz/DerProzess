@@ -174,6 +174,14 @@ class BenchTest:
         except subprocess.CalledProcessError as e:
             print(e.output)
 
+        print("waiting for topic __driver to be deleted")
+        while True:
+            try:
+                subprocess.check_output("kafka-topics --zookeeper %s --list | grep __driver" % CONF["zookeeper"], shell=True)
+                time.sleep(3)
+            except subprocess.CalledProcessError as e:
+                break
+            
         print("creating topic __driver...")
         try:
             subprocess.check_output("kafka-topics --zookeeper %s --topic __driver --create --replication-factor 1 --partitions 32 --config retention.bytes=21474836480" % CONF["zookeeper"], shell=True)
