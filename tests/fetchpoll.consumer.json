@@ -2,7 +2,7 @@
   "test": "fetchpoll",
   "type": "consumer",
   "properties": {
-		"max.partition.fetch.bytes": [1024,4096,8192,16384,24576,32768,16553,32768,46080,69120],
+		"max.partition.fetch.bytes": [1024,4096,8192,16384,24576,32768,16553,32768,46080,56080,66080,76080],
 		"max.poll.records": [1,10,20,30,40,50,60,70,80,90,100]
   }
 }

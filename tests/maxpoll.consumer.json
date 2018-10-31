@@ -3,6 +3,6 @@
   "type": "consumer",
   "properties": {
 		"max.partition.fetch.bytes": 1048576,
-		"max.poll.records": [1,50,100,150,200,250,300,350,400,450,500,600,700,800,900,1000]
+		"max.poll.records": [1,2,3,4,5,6,7,8,9,10,20,50]
   }
 }
