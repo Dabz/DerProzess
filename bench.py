@@ -18,6 +18,7 @@ import pprint
 import numpy
 import json
 import sys
+import time
 
 JVM_OPTION = ""
 DRIVER_CMD = "java %s -jar java/driver/target/driver-1.0-SNAPSHOT-jar-with-dependencies.jar" % JVM_OPTION
