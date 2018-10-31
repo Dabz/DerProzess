@@ -52,6 +52,7 @@ def render_3d_graph(json_data, xAxis, yAxix, zAxis):
     ax.zaxis.set_major_formatter(FormatStrFormatter('%d'))
     ax.set_xlabel(xAxis)
     ax.set_ylabel(yAxix)
+    ax.set_ylim(0, max(Y) * 1.2)
     ax.set_title("kafka throughput (MB/s)")
 
 
@@ -74,7 +75,7 @@ def render_2d_graph_string(json_data, xAxis, zAxis):
     ax.bar(X, Y)
     ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
     ax.set_title('kafka throughput (MB/s)')
-    ax.set_ylim(0, max(Y))
+    ax.set_ylim(0, max(Y) * 1.2)
     plt.show()
 
 

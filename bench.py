@@ -199,11 +199,12 @@ class BenchTest:
         for properties in self.properties_to_test:
             self.print_properties(properties)
             prop_path = self.propertie_to_file(properties)
-            stdout = subprocess.check_output(DRIVER_CMD + ' --%s --config %s --payload-size %s -m' %
+            stdout = subprocess.check_output(DRIVER_CMD + ' --%s --config %s --payload-size %s -m --duration %s' %
                                              (
                                                  self.test_type,
                                                  prop_path,
-                                                 self.payload_size()
+                                                 self.payload_size(),
+                                                 CONF['duration']
                                              ),
                                              shell=True).decode('utf-8')
             result = self.process_results(stdout)

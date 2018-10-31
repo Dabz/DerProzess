@@ -1,5 +1,6 @@
 {
 	"bootstrap.servers": "localhost:9092",
-	"zookeeper": "localhost:2181"
+	"zookeeper": "localhost:2181",
+	"duration": "10"
 }
 
