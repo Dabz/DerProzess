@@ -61,6 +61,7 @@ public class ConsumerDriver extends Driver {
                         ConsumerStatistics.getShared().getTotalSizeOfMessagesConsumed().addAndGet(consumerRecord.serializedKeySize() + consumerRecord.serializedValueSize());
                     }
                 }
+                kafkaConsumer.close();
             });
 
             thread.start();

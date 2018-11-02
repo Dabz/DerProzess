@@ -57,6 +57,7 @@ public class ProducerDriver extends Driver {
                         ProducerDriverStatistics.getShared().getTotalSizeOfMessagesProduced().addAndGet(metadata.serializedKeySize() + metadata.serializedValueSize());
                     }));
                 }
+                kafkaProducer.close();
             }).start();
         }
     }
