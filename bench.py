@@ -182,7 +182,7 @@ class BenchTest:
                 time.sleep(3)
             except subprocess.CalledProcessError as e:
                 break
-            
+
         print("creating topic __driver...")
         try:
             subprocess.check_output("kafka-topics --zookeeper %s --topic __driver --create --replication-factor 1 --partitions 32 --config retention.bytes=21474836480" % CONF["zookeeper"], shell=True)
