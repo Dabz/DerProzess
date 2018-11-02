@@ -227,9 +227,9 @@ class BenchTest:
 
 def launch_test():
     if len(sys.argv) <= 1:
-        list_of_files = os.listdir('./properties')
+        list_of_files = os.listdir('./tests')
         for file in list_of_files:
-            handler = open("./properties/" + file)
+            handler = open("./tests/" + file)
             json_data = json.load(handler)
             test = BenchTest(json_data)
             test.run()
