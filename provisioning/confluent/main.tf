@@ -22,6 +22,10 @@ variable "driver-count" {
   default = 3
 }
 
+variable "driver-test" {
+  default = ""
+}
+
 variable "driver-instance-type" {
   default = "t2.xlarge"
 }
@@ -304,6 +308,18 @@ resource "aws_instance" "drivers" {
   provisioner "file" {
     source      = "../configuration.json"
     destination = "/home/ec2-user/"
+
+    connection {
+      user        = "ec2-user"
+      private_key = "${file("${var.key-file}")}"
+    }
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /home/ec2-user/install_driver.sh",
+      "/home/ec2-user/install_driver.sh ${aws_instance.zookeepers.0.private_dns} ${count.index} ${var.broker-configuration} ${var.influx-host}",
+    ]
 
     connection {
       user        = "ec2-user"

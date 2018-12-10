@@ -1,5 +1,8 @@
 package io.confluent.dabz;
 
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.DescribeTopicsResult;
+import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -8,10 +11,13 @@ import org.apache.kafka.common.serialization.BytesSerializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.log4j.Logger;
 
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ProducerDriver extends Driver {
@@ -20,17 +26,28 @@ public class ProducerDriver extends Driver {
     private String topic;
     private int expectedNumberOfThreads;
     private int expectedSizeOfPayload;
+    private short numPartitions;
+    private short replicationFactor;
     private boolean running = true;
 
-    public ProducerDriver(String configFile, String topic, int expectedNumberOfThreads, int expectedSizeOfPayload) {
+    public ProducerDriver(String configFile, String topic, int expectedNumberOfThreads,
+                          int expectedSizeOfPayload, short replicationFactor, short numPartitions) {
         this.configFile = configFile;
         this.topic = topic;
         this.expectedNumberOfThreads = expectedNumberOfThreads;
         this.expectedSizeOfPayload = expectedSizeOfPayload;
+        this.replicationFactor = replicationFactor;
+        this.numPartitions = numPartitions;
     }
 
     @Override
     public void run() {
+        try {
+            createTopic(configFile, topic, replicationFactor, numPartitions);
+        } catch (Exception e) {
+            log.error("can not create topic", e);
+            return;
+        }
         Properties properties = new Properties();
         try {
             properties.load(new FileReader(configFile));

@@ -18,6 +18,7 @@ public class Main {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp( "java -jar driver.jar", getOptions());
             log.error("Unexpected error while parsing options", e);
+            System.exit(1);
         }
 
         if (cmdLine.hasOption("h")) {
@@ -26,14 +27,19 @@ public class Main {
             System.exit(0);
         }
 
-        if (cmdLine.hasOption("p")) {
+        if (cmdLine.hasOption("producer")) {
             driver = startProducerTest(cmdLine);
         }
-        else if (cmdLine.hasOption("c")) {
+        else if (cmdLine.hasOption("consumer")) {
             driver = startConsumerTest(cmdLine);
         } else if (cmdLine.hasOption("l")) {
-
+            // TODO
+        } else {
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp( "java -jar driver.jar", getOptions());
+            System.exit(0);
         }
+
 
         if (cmdLine.hasOption("d")) {
             testDuration = Integer.valueOf(cmdLine.getOptionValue("duration"));
@@ -50,9 +56,11 @@ public class Main {
 
     private static Driver startProducerTest(CommandLine cmdLine) {
         String topic = "__driver";
-        String configFile;
+        String configFile = null;
         int payloadSize = 4092;
         int numThread = Runtime.getRuntime().availableProcessors();
+        short partitions = 50;
+        short replication = 1;
 
         /*
          Required arguments
@@ -77,8 +85,14 @@ public class Main {
         if (cmdLine.hasOption("s")) {
             payloadSize = Integer.parseInt(cmdLine.getOptionValue("s"));
         }
+        if (cmdLine.hasOption("rf")) {
+            replication = Short.parseShort(cmdLine.getOptionValue("rf"));
+        }
+        if (cmdLine.hasOption("pt")) {
+            partitions = Short.parseShort(cmdLine.getOptionValue("pt"));
+        }
 
-        ProducerDriver producerDriver = new ProducerDriver(configFile, topic, numThread, payloadSize);
+        ProducerDriver producerDriver = new ProducerDriver(configFile, topic, numThread, payloadSize, replication, partitions);
         Thread thread = new Thread(producerDriver);
         ProducerDriverStatistics producerDriverStatistics = new ProducerDriverStatistics();
         producerDriverStatistics.setMinimalist(cmdLine.hasOption("m"));
@@ -132,14 +146,17 @@ public class Main {
     private static Options getOptions() {
         Options options = new Options();
         options.addOption("c", "config", true, "kafka properties to load for KafkaProducer and KafkaConsumer");
-        options.addOption("p", "producer", false, "test producer performances");
-        options.addOption("c", "consumer", false, "test consumer performances");
+        options.addOption("producer", "producer", false, "test producer performances");
+        options.addOption("consumer", "consumer", false, "test consumer performances");
         options.addOption("t", "topic", true, "topic to consumer/produce from/to (default __driver)");
         options.addOption("h", "help", true, "print this help");
         options.addOption("n", "thread", true, "number of thread to use for consuming/producing (default number of core)");
         options.addOption("s", "payload-size", true, "size of the payload to produce (default 4092)");
         options.addOption("d", "duration", true, "maximum duration in seconds of the test (default 20s)");
         options.addOption("m", "minimalist", false, "machine friendly output");
+        options.addOption("rf", "replication", true, "replication factor");
+        options.addOption("pt", "partitions", true, "number of partitions");
+        options.addOption("h", "help", false, "display help");
 
         return options;
     }
