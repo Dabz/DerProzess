@@ -18,7 +18,14 @@
 		"gnetId": 1375,
 		"graphTooltip": 0,
 		"id": null,
-		"links": [],
+    "links": [
+      {
+        "icon": "external link",
+        "tags": [
+        ],
+        "type": "dashboards"
+      }
+    ],
 		"panels": [
 			{
 				"aliasColors": {

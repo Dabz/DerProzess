@@ -22,7 +22,6 @@
       {
         "icon": "external link",
         "tags": [
-          "kafka"
         ],
         "type": "dashboards"
       }
@@ -1597,55 +1596,10 @@
               "selected": false,
               "text": "__consumer_offsets",
               "value": "__consumer_offsets"
-            },
-            {
-              "selected": false,
-              "text": "sample",
-              "value": "sample"
-            },
-            {
-              "selected": false,
-              "text": "simple-stream-KSTREAM-AGGREGATE-STATE-STORE-0000000004-changelog",
-              "value": "simple-stream-KSTREAM-AGGREGATE-STATE-STORE-0000000004-changelog"
-            },
-            {
-              "selected": false,
-              "text": "simple-stream-KSTREAM-AGGREGATE-STATE-STORE-0000000004-repartition",
-              "value": "simple-stream-KSTREAM-AGGREGATE-STATE-STORE-0000000004-repartition"
-            },
-            {
-              "selected": false,
-              "text": "simple-stream-KSTREAM-AGGREGATE-STATE-STORE-0000000012-changelog",
-              "value": "simple-stream-KSTREAM-AGGREGATE-STATE-STORE-0000000012-changelog"
-            },
-            {
-              "selected": false,
-              "text": "simple-stream-KSTREAM-AGGREGATE-STATE-STORE-0000000012-repartition",
-              "value": "simple-stream-KSTREAM-AGGREGATE-STATE-STORE-0000000012-repartition"
-            },
-            {
-              "selected": true,
-              "text": "telegraf",
-              "value": "telegraf"
-            },
-            {
-              "selected": false,
-              "text": "telegraf-10s-window-count",
-              "value": "telegraf-10s-window-count"
-            },
-            {
-              "selected": false,
-              "text": "telegraf-global-count",
-              "value": "telegraf-global-count"
-            },
-            {
-              "selected": false,
-              "text": "telegraf-input-by-thread",
-              "value": "telegraf-input-by-thread"
             }
           ],
           "query": "show tag values from kafka_server_broker_topic_metrics_per_topic with key = topic",
-          "refresh": 0,
+          "refresh": 1,
           "regex": "",
           "sort": 0,
           "tagValuesQuery": "",

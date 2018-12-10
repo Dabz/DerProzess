@@ -46,3 +46,19 @@ module "kafka-cluster" {
   key-name     = "${var.keyname}"
   influx-host  = "${module.grafana.influxdb_public_dns}"
 }
+
+output "kafka-brokers-public-dns" {
+  value = ["${module.kafka-cluster.broker_public_dns}"]
+}
+
+output "kafka-driver-public-dns" {
+  value = ["${module.kafka-cluster.driver_drivers_dns}"]
+}
+
+output "grafana-public-dns" {
+  value = "${module.grafana.influxdb_public_dns}"
+}
+
+output "grafana-url" {
+  value = "http://${module.grafana.influxdb_public_dns}:3000"
+}

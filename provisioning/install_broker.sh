@@ -49,9 +49,9 @@ start_confluent() {
 install_telegraf() {
   sudo cp /home/ec2-user/configurations/influx.repo /etc/yum.repos.d/influx.repo
   sudo yum install -y telegraf
-  sudo cp /home/ec2-user/configurations/grafana/telegraf.conf /etc/telegraf/telegraf.conf
-  sudo cp /home/ec2-user/configurations/grafana/kafka.conf /etc/telegraf/telegraf.d/kafka.conf
-  sudo cp /home/ec2-user/configurations/grafana/host.conf /etc/telegraf/telegraf.d/host.conf
+  sudo cp /home/ec2-user/configurations/telegraf/telegraf.conf /etc/telegraf/telegraf.conf
+  sudo cp /home/ec2-user/configurations/telegraf/kafka.conf /etc/telegraf/telegraf.d/kafka.conf
+  sudo cp /home/ec2-user/configurations/telegraf/host.conf /etc/telegraf/telegraf.d/host.conf
 
   sudo sed -i "s/#HOSTNAME#/kafka-$BROKER_ID/" /etc/telegraf/telegraf.conf
   sudo sed -i "s~#INFLUXDB_HOST#~$INFLUXDB_HOST~" /etc/telegraf/telegraf.conf
