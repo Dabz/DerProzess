@@ -60,11 +60,11 @@ class Executor:
         return 1024
 
     def is_local(self):
-        return self.broker_config is None
+        return self.provisioner is None
 
     def __init__(self, json_data, provisioner, output_folder):
         self.output_folder = output_folder
-        self.broker_config = provisioner
+        self.provisioner = provisioner
         self.properties_to_test = []
         self.properties = {}
         self.ranged_properties = {}
@@ -82,7 +82,7 @@ class Executor:
             driver_host = provisioner.driver_host()
 
             self.ssh = paramiko.SSHClient()
-            key = paramiko.RSAKey.from_private_key_file(provisioner.broker_conf["ssh-key"])
+            key = paramiko.RSAKey.from_private_key_file(provisioner.cloud_conf["ssh-key"])
             self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             self.ssh.connect(hostname=driver_host,
                              username="ec2-user",

@@ -43,7 +43,7 @@ class CloudOrchestrator:
         for properties in self.configuration_to_test:
             p.print_properties(properties)
             provisioner = provision.Provision(properties)
-            provisioning_threads.append(Thread(target=provisioner.apply_if_required()))
+            provisioning_threads.append(Thread(target=provisioner.apply_if_required))
             provisioners.append(provisioner)
 
         for thread in provisioning_threads:
