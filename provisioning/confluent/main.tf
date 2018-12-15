@@ -19,7 +19,7 @@ variable "broker-configuration" {
 }
 
 variable "driver-count" {
-  default = 3
+  default = 1
 }
 
 variable "driver-test" {
@@ -52,7 +52,7 @@ data "aws_ami" "rhel7" {
 
 resource "aws_security_group" "drivers" {
   description = "drivers - Managed by DerProzess"
-  name        = "${var.ownershort}-drivers"
+  name        = "${terraform.workspace}-${var.ownershort}-drivers"
 
   ingress {
     from_port   = 22
@@ -71,7 +71,7 @@ resource "aws_security_group" "drivers" {
 
 resource "aws_security_group" "brokers" {
   description = "brokers - Managed by DerProzess"
-  name        = "${var.ownershort}-brokers"
+  name        = "${terraform.workspace}-${var.ownershort}-brokers"
 
   # client connections from hosts, my ip, clients
   ingress {
@@ -107,7 +107,7 @@ resource "aws_security_group" "brokers" {
 
 resource "aws_security_group" "zookeepers" {
   description = "zookeeper - Managed by DerProzess"
-  name        = "${var.ownershort}-zookeeper"
+  name        = "${terraform.workspace}-${var.ownershort}-zookeeper"
 
   # zookeeper connections hosts, my ip, clients
   ingress {
@@ -160,10 +160,10 @@ resource "aws_instance" "zookeepers" {
   }
 
   tags {
-    Name          = "${var.ownershort}-zookeeper-${count.index}"
-    description   = "zookeeper node - Managed by DerProzess"
-    nice-name     = "zookeeper-${count.index}"
-    big-nice-name = "zookeeper-${count.index}"
+    Name          = "${terraform.workspace}-${var.ownershort}-zookeeper-${count.index}"
+    description   = "zookeeper node - Managed by DerProzess (${terraform.workspace})"
+    nice-name     = "${terraform.workspace}-zookeeper-${count.index}"
+    big-nice-name = "${terraform.workspace}-zookeeper-${count.index}"
     role          = "zookeeper"
     owner         = "${var.owner}"
     sshUser       = "ec2-user"
@@ -220,10 +220,10 @@ resource "aws_instance" "brokers" {
   }
 
   tags {
-    Name          = "${var.ownershort}-broker-${count.index}"
+    Name          = "${terraform.workspace}-${var.ownershort}-broker-${count.index}"
     description   = "broker node - Managed by DerProzess"
-    nice-name     = "broker-${count.index}"
-    big-nice-name = "broker-${count.index}"
+    nice-name     = "${terraform.workspace}-broker-${count.index}"
+    big-nice-name = "${terraform.workspace}-broker-${count.index}"
     role          = "broker"
     owner         = "${var.owner}"
     sshUser       = "ec2-user"
@@ -275,10 +275,10 @@ resource "aws_instance" "drivers" {
   key_name        = "${var.key-name}"
 
   tags {
-    Name          = "${var.ownershort}driver-${count.index}"
+    Name          = "${terraform.workspace}-${var.ownershort}-driver-${count.index}"
     description   = "driver node - Managed by DerProzess"
-    nice-name     = "driver-${count.index}"
-    big-nice-name = "driver-${count.index}"
+    nice-name     = "${terraform.workspace}-driver-${count.index}"
+    big-nice-name = "${terraform.workspace}-driver-${count.index}"
     role          = "driver"
     owner         = "${var.owner}"
     sshUser       = "ec2-user"
@@ -315,10 +315,30 @@ resource "aws_instance" "drivers" {
     }
   }
 
+  provisioner "file" {
+    source      = "./configurations"
+    destination = "/home/ec2-user/"
+
+    connection {
+      user        = "ec2-user"
+      private_key = "${file("${var.key-file}")}"
+    }
+  }
+
+  provisioner "file" {
+    source      = "install_driver.sh"
+    destination = "/home/ec2-user/install_driver.sh"
+
+    connection {
+      user        = "ec2-user"
+      private_key = "${file("${var.key-file}")}"
+    }
+  }
+
   provisioner "remote-exec" {
     inline = [
       "chmod +x /home/ec2-user/install_driver.sh",
-      "/home/ec2-user/install_driver.sh ${aws_instance.zookeepers.0.private_dns} ${count.index} ${var.broker-configuration} ${var.influx-host}",
+      "/home/ec2-user/install_driver.sh ${aws_instance.brokers.0.private_dns} ${count.index}",
     ]
 
     connection {
@@ -329,6 +349,10 @@ resource "aws_instance" "drivers" {
 }
 
 // Output
+output "broker_private_dns" {
+  value = ["${aws_instance.brokers.*.private_dns}"]
+}
+
 output "broker_public_ips" {
   value = ["${aws_instance.brokers.*.public_ip}"]
 }

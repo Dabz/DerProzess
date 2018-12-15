@@ -30,7 +30,7 @@ data "aws_ami" "rhel7" {
 
 resource "aws_security_group" "grafana" {
   description = "Grafana - Managed by DerProzess"
-  name        = "${var.ownershort}-grafana"
+  name        = "${terraform.workspace}-${var.ownershort}-grafana"
 
   ingress {
     from_port   = 22
@@ -74,10 +74,10 @@ resource "aws_instance" "grafana" {
   }
 
   tags {
-    Name          = "${var.ownershort}-grafana"
+    Name          = "${terraform.workspace}-${var.ownershort}-grafana"
     description   = "grafana node - Managed by DerProzess"
-    nice-name     = "grafana"
-    big-nice-name = "grafana"
+    nice-name     = "${terraform.workspace}-grafana"
+    big-nice-name = "${terraform.workspace}-grafana"
     role          = "grafana"
     owner         = "${var.owner}"
     sshUser       = "ec2-user"

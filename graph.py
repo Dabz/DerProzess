@@ -19,10 +19,11 @@ import json
 import os
 import numpy as np
 
-
 """
 Render a 3d surface plot with the required axis
 """
+
+
 def render_3d_graph(json_data, xAxis, yAxix, zAxis):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -55,12 +56,14 @@ def render_3d_graph(json_data, xAxis, yAxix, zAxis):
     ax.set_ylim(0, max(Y) * 1.2)
     ax.set_title("kafka throughput (MB/s)")
 
-
     plt.show()
+
 
 """
 Render a 2d bar graph
 """
+
+
 def render_2d_graph_string(json_data, xAxis, zAxis):
     fig = plt.figure()
     ax = plt.subplot(111)
@@ -82,6 +85,8 @@ def render_2d_graph_string(json_data, xAxis, zAxis):
 """
 Render a 2d line graph
 """
+
+
 def render_2d_graph(json_data, xAxis, zAxis):
     fig = plt.figure()
     ax = plt.subplot(111)
@@ -103,10 +108,11 @@ def render_2d_graph(json_data, xAxis, zAxis):
     plt.show()
 
 
-
 """
 Analyze the result and render the required graph.
 """
+
+
 def render_graph(json_data):
     ranged_properties = json_data["ranged_properties"]
 

@@ -4,6 +4,11 @@
   "properties": {
 		"linger.ms": 10,
 		"batch.size": 524288,
-		"compression.type": ["none", "gzip", "snappy", "lz4"]
-  }
+		"compression.type": ["none", "gzip", "snappy", "lz4"],
+		"acks": "all"
+  }, 
+	"brokers": {
+		"count": 3,
+		"instance-type": [ "t2.large", "t2.xlarge" ]"
+	}
 }

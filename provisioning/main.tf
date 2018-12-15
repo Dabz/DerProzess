@@ -14,8 +14,12 @@ variable "ownershort" {
   default = "dga"
 }
 
-variable "instance_type" {
-  default = "t2.medium"
+variable "broker-instance-type" {
+  default = "t2.large"
+}
+
+variable "driver-instance-type" {
+  default = "t2.large"
 }
 
 variable "broker-count" {
@@ -24,6 +28,10 @@ variable "broker-count" {
 
 variable "key-file" {
   default = "/home/gaspar_d/.ssh/damien-paris.pem"
+}
+
+variable "fingerprint" {
+  default = ""
 }
 
 module "grafana" {
@@ -36,15 +44,25 @@ module "grafana" {
 }
 
 module "kafka-cluster" {
-  source       = "./confluent"
-  broker-count = "${var.broker-count}"
-  name         = "cluster"
-  region       = "${var.region}"
-  owner        = "${var.owner}"
-  ownershort   = "${var.ownershort}"
-  key-file     = "${var.key-file}"
-  key-name     = "${var.keyname}"
-  influx-host  = "${module.grafana.influxdb_public_dns}"
+  source               = "./confluent"
+  broker-count         = "${var.broker-count}"
+  name                 = "cluster"
+  region               = "${var.region}"
+  owner                = "${var.owner}"
+  ownershort           = "${var.ownershort}"
+  key-file             = "${var.key-file}"
+  key-name             = "${var.keyname}"
+  influx-host          = "${module.grafana.influxdb_public_dns}"
+  broker-instance-type = "${var.broker-instance-type}"
+  driver-instance-type = "${var.driver-instance-type}"
+}
+
+output "fingerprint" {
+  value = "${var.fingerprint}"
+}
+
+output "kafka-brokers-private-dns" {
+  value = ["${module.kafka-cluster.broker_private_dns}"]
 }
 
 output "kafka-brokers-public-dns" {

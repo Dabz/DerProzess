@@ -1,7 +1,19 @@
 {
-	"bootstrap.servers": "localhost:9092",
-	"zookeeper": "localhost:2181",
 	"duration": "10",
-	"confluent.monitoring.interceptor.bootstrap.servers": "localhost:9092"
+	"clients" : {
+	},
+	"local": {
+		"bootstrap.servers": "localhost:9092"
+	},
+	"cloud": {
+		"region": "eu-west-3",
+		"ssh-key": "/home/gaspar_d/.ssh/damien-paris.pem",
+		"ssh-keyname": "damien-paris",
+		"owner": "dgasparina",
+		"ownershort": "dga",
+		"broker-instance-type": "t2.xlarge",
+		"driver-instance-type": "t2.xlarge",
+		"count": 3
+	}
 }
 

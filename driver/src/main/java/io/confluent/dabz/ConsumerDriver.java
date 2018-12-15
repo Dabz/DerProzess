@@ -35,8 +35,6 @@ public class ConsumerDriver extends Driver {
             properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, BytesDeserializer.class);
             properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
             properties.put(ConsumerConfig.GROUP_ID_CONFIG, "cow-driver-" + UUID.randomUUID().toString());
-            properties.put(ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
-                    "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor");
         } catch (IOException e) {
             log.error("can not read properties file", e);
         }

@@ -1,14 +1,13 @@
 package io.confluent.dabz;
 
-import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.DescribeTopicsResult;
-import org.apache.kafka.clients.admin.KafkaAdminClient;
-import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.admin.*;
+import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
@@ -30,11 +29,16 @@ public abstract class Driver implements Runnable {
         properties.load(new FileReader(configFile));
 
         AdminClient adminClient = KafkaAdminClient.create(properties);
-        DescribeTopicsResult describeTopicsResult = adminClient.describeTopics(Arrays.asList(topic));
-        if (describeTopicsResult.values().size() > 0) {
-            return;
+        try {
+            DescribeTopicsResult describeTopicsResult = adminClient.describeTopics(Arrays.asList(topic));
+            describeTopicsResult.all().get();
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof UnknownTopicOrPartitionException) {
+                NewTopic newTopic = new NewTopic(topic, partitions, replicationFactor);
+                adminClient.createTopics(Arrays.asList(newTopic)).all().get();
+            } else {
+                throw e;
+            }
         }
-        NewTopic newTopic = new NewTopic(topic, partitions, replicationFactor);
-        adminClient.createTopics(Arrays.asList(newTopic)).all().get();
     }
 }
