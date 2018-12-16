@@ -94,5 +94,6 @@ def gen_properties_to_test(properties, ranged_properties):
 
     for combination in get_combination(ranged_properties):
         copy = combination.copy()
-        copy.update(properties)
-        yield copy
+        res = properties.copy()
+        res.update(copy)
+        yield res

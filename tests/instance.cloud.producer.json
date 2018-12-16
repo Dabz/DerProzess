@@ -2,12 +2,12 @@
 	"test": "simple",
 	"type": "producer",
 	"properties": {
-		"linger.ms": [1,2,3,4,5,6,7,8,9,10],
-		"batch.size": [1024,8192,16384,32768,65536,131072,262144,307200,409600,524288,624288,624288,724288,824288,924288],
+		"linger.ms": 10,
+		"batch.size": 524288,
 		"acks": "all"
 	},
 	"brokers": {
-		"count": 3,
-		"instance-type": [ "m5.large", "m5.4xlarge" ]
+		"count": [2,3,4,5],
+		"broker-instance-type": "m5.large"
 	}
 }
