@@ -11,8 +11,8 @@ Start local benchmarking of all the properties
 Tests should be located in the properties folder
 """
 
-import properties as p
-import provision
+from lib import properties as p
+from lib import provision
 from lib import executor
 from threading import Thread
 

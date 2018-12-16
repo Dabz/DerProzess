@@ -19,8 +19,8 @@ import numpy
 import json
 import sys
 import time
-import properties as p
 import paramiko
+from lib import properties as p
 
 JVM_OPTION = ""
 DRIVER_CMD = "java %s -jar driver/target/driver-1.0-SNAPSHOT-jar-with-dependencies.jar" % JVM_OPTION

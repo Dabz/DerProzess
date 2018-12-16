@@ -24,37 +24,46 @@ Render a 3d surface plot with the required axis
 """
 
 
-def render_3d_graph(json_data, xAxis, yAxix, zAxis):
+def render_3d_graph(results, xAxis, yAxix, zAxis):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    xSet = set()
-    ySet = set()
+    surfaces = []
+    legends = []
+    for json_data in results:
+        xSet = set()
+        ySet = set()
 
-    for result in json_data:
-        xSet.add(int(result["configuration"][xAxis]))
-        ySet.add(int(result["configuration"][yAxix]))
+        for result in json_data["results"]:
+            xSet.add(int(result["configuration"][xAxis]))
+            ySet.add(int(result["configuration"][yAxix]))
 
-    X = list(xSet)
-    Y = list(ySet)
-    X.sort()
-    Y.sort()
-    Z = np.zeros(shape=(len(Y), len(X)))
+        X = list(xSet)
+        Y = list(ySet)
+        X.sort()
+        Y.sort()
+        Z = np.zeros(shape=(len(Y), len(X)))
 
-    for result in json_data:
-        xa = int(result["configuration"][xAxis])
-        ya = int(result["configuration"][yAxix])
-        za = result[zAxis] / (1024 * 1024)
-        Z[Y.index(ya)][X.index(xa)] = int(za)
+        for result in json_data["results"]:
+            xa = int(result["configuration"][xAxis])
+            ya = int(result["configuration"][yAxix])
+            za = result[zAxis] / (1024 * 1024)
+            Z[Y.index(ya)][X.index(xa)] = int(za)
 
-    xv, yv = np.meshgrid(X, Y)
+        xv, yv = np.meshgrid(X, Y)
 
-    surf = ax.plot_surface(xv, yv, Z, cmap='summer', rstride=1, cstride=1, alpha=0.8, antialiased=True)
-    ax.zaxis.set_major_locator(LinearLocator(10))
-    ax.zaxis.set_major_formatter(FormatStrFormatter('%d'))
+        surf = ax.plot_surface(xv, yv, Z, rstride=1, cstride=1, alpha=0.8, antialiased=True)
+        surf._facecolors2d=surf._facecolors3d
+        surf._edgecolors2d=surf._edgecolors3d
+        ax.zaxis.set_major_locator(LinearLocator(10))
+        ax.zaxis.set_major_formatter(FormatStrFormatter('%d'))
+        surfaces.append(surf)
+        legends.append(json_data["test"])
+
     ax.set_xlabel(xAxis)
     ax.set_ylabel(yAxix)
     ax.set_ylim(0, max(Y) * 1.2)
     ax.set_title("kafka throughput (MB/s)")
+    ax.legend(surfaces, legends)
 
     plt.show()
 
@@ -64,19 +73,21 @@ Render a 2d bar graph
 """
 
 
-def render_2d_graph_string(json_data, xAxis, zAxis):
+def render_2d_graph_string(results, xAxis, zAxis):
     fig = plt.figure()
     ax = plt.subplot(111)
 
-    X = []
-    Y = []
+    for json_data in results:
+        X = []
+        Y = []
 
-    for result in json_data:
-        X.append(result["configuration"][xAxis])
-        Y.append(int(result[zAxis]) / (1024 * 1024))
+        for result in json_data["results"]:
+            X.append(result["configuration"][xAxis])
+            Y.append(int(result[zAxis]) / (1024 * 1024))
 
-    ax.bar(X, Y)
-    ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+        ax.bar(X, Y)
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+
     ax.set_title('kafka throughput (MB/s)')
     ax.set_ylim(0, max(Y) * 1.2)
     plt.show()
@@ -87,20 +98,22 @@ Render a 2d line graph
 """
 
 
-def render_2d_graph(json_data, xAxis, zAxis):
+def render_2d_graph(results, xAxis, zAxis):
     fig = plt.figure()
     ax = plt.subplot(111)
 
-    X = []
-    Y = []
+    for json_data in results:
+        X = []
+        Y = []
 
-    for result in json_data:
-        Y.append(int(result[zAxis]) / (1024 * 1024))
-        X.append(result["configuration"][xAxis])
+        for result in json_data:
+            Y.append(int(result[zAxis]) / (1024 * 1024))
+            X.append(result["configuration"][xAxis])
 
-    ax.plot(X, Y, label=xAxis, color='c', marker='o')
-    ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
-    ax.set_title('kafka throughput (MB/s)')
+        ax.plot(X, Y, label=xAxis, color='c', marker='o')
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+        ax.set_title('kafka throughput (MB/s)')
+
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles, labels)
     ax.set_ylim(0, max(Y))
@@ -113,14 +126,14 @@ Analyze the result and render the required graph.
 """
 
 
-def render_graph(json_data):
-    ranged_properties = json_data["ranged_properties"]
+def render_graph(results):
+    ranged_properties = results[0]["ranged_properties"]
 
     keys = list(ranged_properties.keys())
     # If there is 2 ranged properties, render a 3D surface graph
     if len(ranged_properties) == 2:
         if isinstance(ranged_properties[keys[0]][0], int):
-            render_3d_graph(json_data["results"], keys[0], keys[1], "average")
+            render_3d_graph(results, keys[0], keys[1], "average")
         else:
             raise Exception('can not render required graph')
 
@@ -128,9 +141,9 @@ def render_graph(json_data):
     # plot a bar graph
     if len(ranged_properties) == 1:
         if isinstance(ranged_properties[keys[0]][0], int):
-            render_2d_graph(json_data["results"], keys[0], "average")
+            render_2d_graph(results, keys[0], "average")
         else:
-            render_2d_graph_string(json_data["results"], keys[0], "average")
+            render_2d_graph_string(results, keys[0], "average")
 
 
 def usage():
@@ -141,10 +154,12 @@ def main():
     if len(sys.argv) <= 1:
         usage()
     else:
+        results = []
         for arg in sys.argv[1:]:
             handler = open(arg)
             json_data = json.load(handler)
-            render_graph(json_data)
+            results.append(json_data)
+        render_graph(results)
 
 
 main()
