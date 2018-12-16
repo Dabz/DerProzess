@@ -7,7 +7,7 @@
 		"acks": "all"
 	},
 	"brokers": {
-		"count": [2,3,4,5],
+		"count": [2,3,5],
 		"broker-instance-type": "m5.large"
 	}
 }

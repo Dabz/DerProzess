@@ -13,7 +13,7 @@ Terraform Binding
 import python_terraform
 import threading
 import hashlib
-import uuid
+import string
 
 WORKING_DIR = "./provisioning"
 
@@ -34,17 +34,23 @@ def fingerprint_from_configuration(cloud_conf):
 
 class Provision:
 
-    def __init__(self, cloud_conf):
+    def __init__(self, cloud_conf, ranged_properties):
         self.cloud_conf = cloud_conf
         self.terraform = python_terraform.Terraform(working_dir=WORKING_DIR)
         workspace = self.workspace_with_fingerprint(cloud_conf)
         if workspace is None:
-            self.uid = str(uuid.uuid4())
+            self.uid = self.generate_uid(cloud_conf, ranged_properties)
             self.provisioned = False
         else:
             self.uid = workspace
             self.provisioned = True
         self.terraform.workspace("new", self.uid)
+
+    def generate_uid(self, cloud_conf, ranged_properties):
+        ranged_values = []
+        for ranged_propertie in ranged_properties:
+            ranged_values.append("%s-%s" % (ranged_propertie, cloud_conf[ranged_propertie]))
+        return '_'.join(ranged_values)
 
     def workspace_with_fingerprint(self, cloud_conf):
         workspaces_raw = str(self.terraform.workspace("list")[1])

@@ -52,8 +52,8 @@ def render_3d_graph(results, xAxis, yAxix, zAxis):
         xv, yv = np.meshgrid(X, Y)
 
         surf = ax.plot_surface(xv, yv, Z, rstride=1, cstride=1, alpha=0.8, antialiased=True)
-        surf._facecolors2d=surf._facecolors3d
-        surf._edgecolors2d=surf._edgecolors3d
+        surf._facecolors2d = surf._facecolors3d
+        surf._edgecolors2d = surf._edgecolors3d
         ax.zaxis.set_major_locator(LinearLocator(10))
         ax.zaxis.set_major_formatter(FormatStrFormatter('%d'))
         surfaces.append(surf)

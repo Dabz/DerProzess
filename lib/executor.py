@@ -79,6 +79,7 @@ class Executor:
             os.mkdir(output_folder)
 
         if not self.is_local():
+            self.test_name = "%s_%s" % (self.test_name, provisioner.sweet_name())
             driver_host = provisioner.driver_host()
 
             self.ssh = paramiko.SSHClient()
@@ -102,11 +103,16 @@ class Executor:
             self.properties_to_test.append(self.properties)
 
     def results_header(self):
-        return {"test": self.test_name,
-                "type": self.test_type,
-                "results": [],
-                "ranged_properties": self.ranged_properties,
-                "fixed_properties": self.properties}
+        result = {"test": self.test_name,
+                  "type": self.test_type,
+                  "results": [],
+                  "ranged_properties": self.ranged_properties,
+                  "fixed_properties": self.properties}
+
+        if not self.is_local():
+            result["cloud"] = self.provisioner.cloud_conf
+
+        return result
 
     def run(self):
         """
@@ -148,12 +154,12 @@ class Executor:
                 prop_path = p.properties_to_aws(properties, self.sftp)
                 p.print_properties(properties)
                 _, stdout_channel, _ = self.ssh.exec_command(DRIVER_CMD + args %
-                                                              (
-                                                                  self.test_type,
-                                                                  prop_path,
-                                                                  self.payload_size(),
-                                                                  p.CONF['duration']
-                                                              ))
+                                                             (
+                                                                 self.test_type,
+                                                                 prop_path,
+                                                                 self.payload_size(),
+                                                                 p.CONF['duration']
+                                                             ))
                 stdout = ""
                 for line in stdout_channel.readlines():
                     stdout = stdout + "\n" + line
