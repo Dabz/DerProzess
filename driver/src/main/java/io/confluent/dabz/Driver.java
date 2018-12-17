@@ -34,6 +34,10 @@ public abstract class Driver implements Runnable {
             describeTopicsResult.all().get();
         } catch (ExecutionException e) {
             if (e.getCause() instanceof UnknownTopicOrPartitionException) {
+                if (replicationFactor == -1) {
+                    DescribeClusterResult describeClusterResult = adminClient.describeCluster();
+                    replicationFactor = (short) describeClusterResult.nodes().get().size();
+                }
                 NewTopic newTopic = new NewTopic(topic, partitions, replicationFactor);
                 adminClient.createTopics(Arrays.asList(newTopic)).all().get();
             } else {

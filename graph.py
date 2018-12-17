@@ -19,12 +19,11 @@ import json
 import os
 import numpy as np
 
-"""
-Render a 3d surface plot with the required axis
-"""
-
 
 def render_3d_graph(results, xAxis, yAxix, zAxis):
+    """
+    Render a 3d surface plot with the required axis
+    """
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     surfaces = []

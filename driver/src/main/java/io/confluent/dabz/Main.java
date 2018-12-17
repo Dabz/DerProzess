@@ -60,7 +60,7 @@ public class Main {
         int payloadSize = 4092;
         int numThread = Runtime.getRuntime().availableProcessors();
         short partitions = 50;
-        short replication = 1;
+        short replication = -1;
 
         /*
          Required arguments
