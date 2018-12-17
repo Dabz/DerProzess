@@ -68,12 +68,10 @@ def render_3d_graph(results, xAxis, yAxix, zAxis):
     plt.show()
 
 
-"""
-Render a 2d bar graph
-"""
-
-
 def render_2d_graph_string(results, xAxis, zAxis):
+    """
+    Render a 2d bar graph
+    """
     fig = plt.figure()
     ax = plt.subplot(111)
 
@@ -93,12 +91,33 @@ def render_2d_graph_string(results, xAxis, zAxis):
     plt.show()
 
 
-"""
-Render a 2d line graph
-"""
+def render_2d_graph_string_from_file(results, zAxis):
+    """
+    Render a 2d bar graph
+    """
+    fig = plt.figure()
+    ax = plt.subplot(111)
+
+    for json_data in results:
+        X = []
+        Y = []
+
+        for result in json_data["results"]:
+            X.append(json_data["test"])
+            Y.append(int(result[zAxis]) / (1024 * 1024))
+
+        ax.bar(X, Y)
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+
+    ax.set_title('kafka throughput (MB/s)')
+    ax.set_ylim(0, max(Y) * 1.2)
+    plt.show()
 
 
 def render_2d_graph(results, xAxis, zAxis):
+    """
+    Render a 2d line graph
+    """
     fig = plt.figure()
     ax = plt.subplot(111)
 
@@ -121,17 +140,18 @@ def render_2d_graph(results, xAxis, zAxis):
     plt.show()
 
 
-"""
-Analyze the result and render the required graph.
-"""
-
-
 def render_graph(results):
+    """
+    Analyze the result and render the required graph.
+    """
     ranged_properties = results[0]["ranged_properties"]
-
+    number_of_ranged_properties = len(ranged_properties)
     keys = list(ranged_properties.keys())
+    if len(results) > 1:
+        number_of_ranged_properties += 1
+
     # If there is 2 ranged properties, render a 3D surface graph
-    if len(ranged_properties) == 2:
+    if number_of_ranged_properties == 2:
         if isinstance(ranged_properties[keys[0]][0], int):
             render_3d_graph(results, keys[0], keys[1], "average")
         else:
@@ -139,11 +159,13 @@ def render_graph(results):
 
     # Only 1 ranged properties, if it's a number, plot a line, otherwise
     # plot a bar graph
-    if len(ranged_properties) == 1:
-        if isinstance(ranged_properties[keys[0]][0], int):
-            render_2d_graph(results, keys[0], "average")
-        else:
+    if number_of_ranged_properties == 1:
+        if len(results) > 1:
+            render_2d_graph_string_from_file(results, "average")
+        elif not isinstance(ranged_properties[keys[0]][0], int):
             render_2d_graph_string(results, keys[0], "average")
+        else:
+            render_2d_graph(results, keys[0], "average")
 
 
 def usage():
