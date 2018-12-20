@@ -40,11 +40,11 @@ class Provision:
         workspace = self.workspace_with_fingerprint(cloud_conf)
         if workspace is None:
             self.uid = self.generate_uid(cloud_conf, ranged_properties)
+            self.terraform.workspace("new", self.uid)
             self.provisioned = False
         else:
             self.uid = workspace
             self.provisioned = True
-        self.terraform.workspace("new", self.uid)
 
     def generate_uid(self, cloud_conf, ranged_properties):
         ranged_values = []
@@ -103,6 +103,8 @@ class Provision:
         terraform_lock.acquire()
         self.terraform.workspace("select", self.uid)
         self.terraform.destroy(force=True)
+        self.terraform.workspace("select", "default")
+        self.terraform.workspace("delete", self.uid)
         terraform_lock.release()
 
     def sweet_name(self):

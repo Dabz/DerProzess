@@ -15,6 +15,7 @@ import sys
 import json
 from lib import orchestrator
 import os
+from fabulous import color
 
 
 def gen_broker_config(tests):
@@ -58,4 +59,5 @@ def launch_test():
     orch.run()
 
 
+color.section("Der Prozess - Cloud Orchestrator!")
 launch_test()

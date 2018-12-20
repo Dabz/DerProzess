@@ -6,6 +6,7 @@ import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.BytesSerializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
@@ -53,6 +54,7 @@ public class ProducerDriver extends Driver {
             properties.load(new FileReader(configFile));
             properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
             properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
+            
         } catch (Exception e) {
             log.error("can not read properties file", e);
             return;
@@ -67,8 +69,14 @@ public class ProducerDriver extends Driver {
                 while (this.getRunning()) {
                     ProducerRecord<Integer, byte[]> producerRecord = new ProducerRecord<>(topic, key.getAndIncrement(), payload);
                     kafkaProducer.send(producerRecord, ((metadata, exception) -> {
-                        ProducerDriverStatistics.getShared().getTotalNumberOfMessageProduced().incrementAndGet();
-                        ProducerDriverStatistics.getShared().getTotalSizeOfMessagesProduced().addAndGet(metadata.serializedKeySize() + metadata.serializedValueSize());
+                        if (exception != null) {
+                            ProducerDriverStatistics.getShared().getTotalNumberOfMessageProduced().incrementAndGet();
+                            exception.printStackTrace(System.err);
+                        }
+                        if (metadata != null) {
+                            ProducerDriverStatistics.getShared().getTotalNumberOfMessageProduced().incrementAndGet();
+                            ProducerDriverStatistics.getShared().getTotalSizeOfMessagesProduced().addAndGet(metadata.serializedKeySize() + metadata.serializedValueSize());
+                        }
                     }));
                 }
                 kafkaProducer.close();

@@ -1,5 +1,5 @@
 {
-	"duration": "10",
+	"duration": "120",
 	"clients" : {
 	},
 	"local": {
@@ -12,7 +12,7 @@
 		"owner": "dgasparina",
 		"ownershort": "dga",
 		"broker-instance-type": "t2.xlarge",
-		"driver-instance-type": "t2.xlarge",
+		"driver-instance-type": "c5.2xlarge",
 		"count": 3
 	}
 }

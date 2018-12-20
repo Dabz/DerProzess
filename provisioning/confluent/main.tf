@@ -27,7 +27,7 @@ variable "driver-test" {
 }
 
 variable "driver-instance-type" {
-  default = "t2.xlarge"
+  default = "c5.2xlarge"
 }
 
 provider "aws" {
@@ -338,7 +338,7 @@ resource "aws_instance" "drivers" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /home/ec2-user/install_driver.sh",
-      "/home/ec2-user/install_driver.sh ${aws_instance.brokers.0.private_dns} ${count.index}",
+      "/home/ec2-user/install_driver.sh ${aws_instance.brokers.0.private_dns} ${var.influx-host}",
     ]
 
     connection {

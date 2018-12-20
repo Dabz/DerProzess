@@ -12,6 +12,7 @@ if [ "$#" -lt 1 ]; then
 fi
 
 BROKER_URI=$1
+INFLUXDB_HOST=$2
 
 sudo yum install -y curl which wget
 sudo rpm --import https://packages.confluent.io/rpm/5.0/archive.key
