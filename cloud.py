@@ -11,10 +11,10 @@ Start local benchmarking of all the properties
 Tests should be located in the properties folder
 """
 
-import sys
 import json
-from lib import orchestrator
 import os
+import argparse
+from lib import orchestrator
 from fabulous import color
 
 
@@ -40,17 +40,17 @@ def gen_broker_config(tests):
     return brokers
 
 
-def launch_test():
+def launch_test(args):
     tests = []
-    if len(sys.argv) <= 1:
+    if len(args.tests) <= 0:
         list_of_files = os.listdir('./tests')
         for file in list_of_files:
             handler = open("./tests/" + file)
             json_data = json.load(handler)
             tests.append(json_data)
     else:
-        for arg in sys.argv[1:]:
-            handler = open(arg)
+        for test in args.tests:
+            handler = open(test)
             json_data = json.load(handler)
             tests.append(json_data)
 
@@ -59,5 +59,14 @@ def launch_test():
     orch.run()
 
 
+parser = argparse.ArgumentParser(description='Kafka load test on AWS')
+parser.add_argument('--destroy', dest='destroy',
+                    help='destroy the environment after testing',
+                    action='store_true')
+
+parser.add_argument('tests', nargs='*', help='test files')
+
+args = parser.parse_args()
+
 color.section("Der Prozess - Cloud Orchestrator!")
-launch_test()
+launch_test(args)

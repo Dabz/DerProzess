@@ -39,7 +39,12 @@ public abstract class Driver implements Runnable {
                     replicationFactor = (short) describeClusterResult.nodes().get().size();
                 }
                 NewTopic newTopic = new NewTopic(topic, partitions, replicationFactor);
-                adminClient.createTopics(Arrays.asList(newTopic)).all().get();
+                try {
+                    adminClient.createTopics(Arrays.asList(newTopic)).all().get();
+                } catch (Exception ex) {
+                    DescribeTopicsResult describeTopicsResult = adminClient.describeTopics(Arrays.asList(topic));
+                    describeTopicsResult.all().get();
+                }
             } else {
                 throw e;
             }

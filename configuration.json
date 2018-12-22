@@ -1,5 +1,5 @@
 {
-	"duration": "120",
+	"duration": "10",
 	"clients" : {
 	},
 	"local": {
@@ -13,7 +13,8 @@
 		"ownershort": "dga",
 		"broker-instance-type": "t2.xlarge",
 		"driver-instance-type": "c5.2xlarge",
-		"count": 3
+		"broker-count": 3,
+		"driver-count": 3
 	}
 }
 

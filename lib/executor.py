@@ -39,6 +39,9 @@ class Executor:
     Class representing a single test to run (with potential multiple properties)
     """
 
+    def __init__(self):
+        pass
+
     """
     Contains all the set of properties that need to be tested 
     e.g. all combination possible for the ranged properties
@@ -62,46 +65,6 @@ class Executor:
     def is_local(self):
         return self.provisioner is None
 
-    def __init__(self, json_data, provisioner, output_folder):
-        self.output_folder = output_folder
-        self.provisioner = provisioner
-        self.properties_to_test = []
-        self.properties = {}
-        self.ranged_properties = {}
-        self.test_name = json_data["test"]
-        self.test_type = json_data["type"]
-        (self.properties, self.ranged_properties) = p.parse_properties(p.CONF["clients"])
-        (self.properties, self.ranged_properties) = p.parse_properties(json_data["properties"],
-                                                                       self.properties,
-                                                                       self.ranged_properties)
-
-        if not os.path.exists(output_folder):
-            os.mkdir(output_folder)
-
-        if not self.is_local():
-            self.test_name = "%s_%s" % (self.test_name, provisioner.sweet_name())
-            driver_host = provisioner.driver_host()
-
-            self.ssh = paramiko.SSHClient()
-            key = paramiko.RSAKey.from_private_key_file(provisioner.cloud_conf["ssh-key"])
-            self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            self.ssh.connect(hostname=driver_host,
-                             username="ec2-user",
-                             pkey=key)
-            t = paramiko.Transport(driver_host, 22)
-            t.connect(username="ec2-user",
-                      pkey=key)
-            self.sftp = paramiko.SFTPClient.from_transport(t)
-
-        for prop in p.gen_properties_to_test(self.properties, self.ranged_properties):
-            if self.is_local():
-                (self.properties, _) = p.parse_properties(p.CONF["local"], prop)
-
-            else:
-                (self.properties, _) = p.parse_properties(provisioner.configurations(), prop)
-
-            self.properties_to_test.append(self.properties)
-
     def results_header(self):
         result = {"test": self.test_name,
                   "type": self.test_type,
@@ -118,60 +81,7 @@ class Executor:
         """
         Execute the test
         """
-
-        results = self.results_header()
-
-        if not self.test_type == "producer":
-            print("generating some data for %s..." % (self.test_name))
-            prop = self.properties_to_test[0]
-
-            args = ' --producer --config %s --payload-size %s --duration 30'
-            if self.is_local():
-                prop_path = p.properties_to_file(prop)
-                p.print_properties(prop)
-                subprocess.check_output(DRIVER_CMD + args % (prop_path, self.payload_size()), shell=True)
-            else:
-                prop_path = p.properties_to_aws(prop, self.sftp)
-                p.print_properties(prop)
-                stdin, stdout, stderr = self.ssh.exec_command(DRIVER_CMD + args % (prop_path, self.payload_size()))
-
-        print("starting testing %s for %s..." % (self.test_type, self.test_name))
-        for properties in self.properties_to_test:
-            args = ' --%s --config %s --payload-size %s -m --duration %s'
-            if self.is_local():
-                prop_path = p.properties_to_file(properties)
-                p.print_properties(properties)
-                stdout = subprocess.check_output(DRIVER_CMD + args %
-                                                 (
-                                                     self.test_type,
-                                                     prop_path,
-                                                     self.payload_size(),
-                                                     p.CONF['duration']
-                                                 ),
-                                                 shell=True).decode('utf-8')
-                result = self.process_results(stdout)
-            else:
-                prop_path = p.properties_to_aws(properties, self.sftp)
-                p.print_properties(properties)
-                _, stdout_channel, _ = self.ssh.exec_command(DRIVER_CMD + args %
-                                                             (
-                                                                 self.test_type,
-                                                                 prop_path,
-                                                                 self.payload_size(),
-                                                                 p.CONF['duration']
-                                                             ))
-                stdout = ""
-                for line in stdout_channel.readlines():
-                    stdout = stdout + "\n" + line
-
-                result = self.process_results(stdout)
-
-            result["configuration"] = properties
-            results["results"].append(result)
-            print_result(result)
-
-        result_file = open("%s/%s.%s.out" % (self.output_folder, self.test_name, self.test_type), "w+")
-        result_file.write(json.dumps(results))
+        pass
 
     def process_results(self, results):
         """
@@ -192,4 +102,18 @@ class Executor:
         return {"average": average_throughput,
                 "max": max,
                 "min": min,
+                "count": len(lines),
                 "median": median}
+
+    def merge_results(self, results):
+        average_throughtput = numpy.asscalar(numpy.mean([res["average"] for res in results]))
+        max = numpy.asscalar(numpy.max([res["max"] for res in results]))
+        min = numpy.asscalar(numpy.max([res["min"] for res in results]))
+        median = numpy.asscalar(numpy.median([res["median"] for res in results]))
+        count = numpy.asscalar(numpy.sum([res["count"] for res in results]))
+
+        return {"average": average_throughtput,
+                "max": max,
+                "min": min,
+                "median": median,
+                "count": count}

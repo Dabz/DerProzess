@@ -13,7 +13,7 @@ Tests should be located in the properties folder
 
 from lib import properties as p
 from lib import provision
-from lib import executor
+from lib import executor_cloud
 from threading import Thread
 from fabulous.color import *
 import json
@@ -26,7 +26,8 @@ class CloudOrchestrator:
     test_name = ""
     test_type = ""
 
-    def __init__(self, json_data, tests):
+    def __init__(self, json_data, tests, destroy=False):
+        self.destroy = destroy
         self.tests = tests
         self.configuration_to_test = []
         self.properties = {}
@@ -47,16 +48,17 @@ class CloudOrchestrator:
             print(italic(json.dumps(properties, indent=2)))
             print(plain(underline("Provisioning "), underline(bold(provisioner.sweet_name()))))
             provisioner.apply_if_required()
-            print(plain(underline("Done provisioning "), underline(bold(provisioner.sweet_name()))))
             print(plain(underline("Benchmarking")))
             self.run_for_environment(provisioner)
-            print(plain(underline("Done benchmarking")))
-            print(plain(underline("Destroying")))
-            provisioner.destroy()
+            if self.destroy:
+                print(plain(underline("Destroying")))
+                provisioner.destroy()
 
+        if not self.destroy:
+            print(plain(blink(underline("Don't forget to destroy the provisioned resources! (python delete.py)"))))
 
     def run_for_environment(self, environment):
         output_folder = "results_%s" % (environment.sweet_name())
         for test in self.tests:
-            exe = executor.Executor(test, environment, output_folder)
+            exe = executor_cloud.CloudExecutor(test, environment, output_folder)
             exe.run()

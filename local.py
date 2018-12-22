@@ -14,7 +14,7 @@ Tests should be located in the properties folder
 import sys
 import json
 import os
-from lib import executor
+from lib import executor_local
 
 
 def launch_test():
@@ -23,13 +23,13 @@ def launch_test():
         for file in list_of_files:
             handler = open("./tests/" + file)
             json_data = json.load(handler)
-            test = executor.Executor(json_data, None, "results")
+            test = executor_local.LocalExecutor(json_data, "results")
             test.run()
     else:
         for arg in sys.argv[1:]:
             handler = open(arg)
             json_data = json.load(handler)
-            test = executor.Executor(json_data, None, "results")
+            test = executor_local.LocalExecutor(json_data, "results")
             test.run()
 
 

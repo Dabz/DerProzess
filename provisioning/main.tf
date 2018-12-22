@@ -26,6 +26,10 @@ variable "broker-count" {
   default = 3
 }
 
+variable "driver-count" {
+  default = 2
+}
+
 variable "key-file" {
   default = "/home/gaspar_d/.ssh/damien-paris.pem"
 }
@@ -46,6 +50,7 @@ module "grafana" {
 module "kafka-cluster" {
   source               = "./confluent"
   broker-count         = "${var.broker-count}"
+  driver-count         = "${var.driver-count}"
   name                 = "cluster"
   region               = "${var.region}"
   owner                = "${var.owner}"

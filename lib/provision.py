@@ -87,7 +87,8 @@ class Provision:
         self.provisioned = True
         self.terraform.workspace("select", self.uid)
         self.terraform.apply(skip_plan=True, var={
-            "broker-count": self.cloud_conf["count"],
+            "broker-count": self.cloud_conf["broker-count"],
+            "driver-count": self.cloud_conf["driver-count"],
             "key-file": self.cloud_conf["ssh-key"],
             "keyname": self.cloud_conf["ssh-keyname"],
             "owner": self.cloud_conf["owner"],
@@ -140,4 +141,4 @@ class Provision:
         drivers = self.terraform.output("kafka-driver-public-dns")
         terraform_lock.release()
 
-        return drivers[0]
+        return drivers
