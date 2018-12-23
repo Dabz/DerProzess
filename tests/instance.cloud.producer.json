@@ -8,7 +8,7 @@
 		"compression.type": "none"
 	},
 	"brokers": {
-		"count": [2,3,5],
+		"broker-count": [2,3,5],
 		"broker-instance-type": "m5.large"
 	}
 }

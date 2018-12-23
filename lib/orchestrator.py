@@ -45,13 +45,13 @@ class CloudOrchestrator:
             provisioner = provision.Provision(properties, self.ranged_properties)
             section(provisioner.sweet_name())
             print(bold("Configuration"))
-            print(italic(json.dumps(properties, indent=2)))
-            print(plain(underline("Provisioning "), underline(bold(provisioner.sweet_name()))))
+            print(json.dumps(properties, indent=2))
+            print(plain(bold("Provisioning "), underline(bold(provisioner.sweet_name()))))
             provisioner.apply_if_required()
-            print(plain(underline("Benchmarking")))
+            print(plain(bold("Benchmarking")))
             self.run_for_environment(provisioner)
             if self.destroy:
-                print(plain(underline("Destroying")))
+                print(plain(bold("Destroying")))
                 provisioner.destroy()
 
         if not self.destroy:

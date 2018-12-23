@@ -14,12 +14,14 @@ Tests should be located in the properties folder
 import json
 import numpy
 from lib import properties as p
+from fabulous.color import  *
 
 JVM_OPTION = ""
 DRIVER_CMD = "java %s -jar driver/target/driver-1.0-SNAPSHOT-jar-with-dependencies.jar" % JVM_OPTION
 
 
 def print_result(results):
+    print(plain(underline("Results")))
     print(json.dumps({"throughput": humanize_section(results["throughput"]),
                       "latency": humanize_section(results["latency"])},
                      indent=2))
@@ -52,17 +54,18 @@ def merge_section(metrics):
     min = numpy.asscalar(numpy.max([res["min"] for res in metrics]))
     median = numpy.asscalar(numpy.median([res["median"] for res in metrics]))
     count = numpy.asscalar(numpy.sum([res["count"] for res in metrics]))
+    number_of_driver = len(metrics)
 
-    return {"average": average_throughtput,
+    return {"average": average_throughtput * number_of_driver,
             "max": max,
             "min": min,
-            "median": median,
+            "median": median * number_of_driver,
             "count": count}
 
 
 def merge_results(results):
-    return {"throughput": merge_section(results["throughput"]),
-            "latency": merge_section(results["latency"])}
+    return {"throughput": merge_section([res["throughput"] for res in results]),
+            "latency": merge_section([res["latency"] for res in results])}
 
 
 class Executor:
