@@ -60,15 +60,20 @@ public class ProducerDriver extends Driver {
 
                 while (this.getRunning()) {
                     ProducerRecord<Integer, byte[]> producerRecord = new ProducerRecord<>(topic, key.getAndIncrement(), payload);
-                    kafkaProducer.send(producerRecord, ((metadata, exception) -> {
-                        if (exception != null) {
-                            ProducerDriverMetrics.getShared().getTotalNumberOfMessageProduced().incrementAndGet();
-                            exception.printStackTrace(System.err);
-                        }
-                        if (metadata != null) {
-                            producerDriverMetrics.updateCounter(metadata);
-                        }
-                    }));
+                    try {
+                        kafkaProducer.send(producerRecord, ((metadata, exception) -> {
+                            if (exception != null) {
+                                ProducerDriverMetrics.getShared().getTotalNumberOfMessageProduced().incrementAndGet();
+                                exception.printStackTrace(System.err);
+                            }
+                            if (metadata != null) {
+                                producerDriverMetrics.updateCounter(metadata);
+                            }
+                        }));
+                    } catch (Exception e) {
+                        e.printStackTrace(System.err);
+                    }
+                    ;
                 }
                 kafkaProducer.close();
             }).start();

@@ -77,7 +77,7 @@ def properties_to_aws(properties, sftp):
 
 
 def print_properties(properties):
-    pprint.pprint(properties)
+    print(json.dumps(properties, indent=2))
 
 
 def humanize_size(size):

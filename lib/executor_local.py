@@ -17,7 +17,7 @@ import pprint
 import json
 from lib import properties as p
 from lib import executor
-
+from fabulous.color import *
 
 class LocalExecutor(executor.Executor):
     """
@@ -52,17 +52,20 @@ class LocalExecutor(executor.Executor):
         results = self.results_header()
 
         if not self.test_type == "producer":
-            print("generating some data for %s..." % (self.test_name))
+            print(bold("generating some data for %s..." % (self.test_name)))
             prop = self.properties_to_test[0]
             args = ' --producer --config %s --payload-size %s --duration 30'
             prop_path = p.properties_to_file(prop)
             p.print_properties(prop)
             subprocess.check_output(executor.DRIVER_CMD + args % (prop_path, self.payload_size()), shell=True)
 
-        print("starting testing %s for %s..." % (self.test_type, self.test_name))
+        count = 0
         for properties in self.properties_to_test:
+            count += 1
             args = ' --%s --config %s --payload-size %s -m --duration %s'
             prop_path = p.properties_to_file(properties)
+            section("Test #%d" % (count) )
+            print(bold(underline("Configuration")))
             p.print_properties(properties)
             stdout = subprocess.check_output(executor.DRIVER_CMD + args %
                                              (
@@ -76,6 +79,7 @@ class LocalExecutor(executor.Executor):
 
             result["configuration"] = properties
             results["results"].append(result)
+            print(bold(underline("Results")))
             executor.print_result(result)
 
         result_file = open("%s/%s.%s.out" % (self.output_folder, self.test_name, self.test_type), "w+")

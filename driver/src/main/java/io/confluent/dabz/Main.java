@@ -4,6 +4,7 @@ import io.confluent.dabz.driver.ConsumerDriver;
 import io.confluent.dabz.driver.Driver;
 import io.confluent.dabz.driver.ProducerDriver;
 import io.confluent.dabz.metrics.ConsumerMetrics;
+import io.confluent.dabz.metrics.Metrics;
 import io.confluent.dabz.metrics.ProducerDriverMetrics;
 import org.apache.commons.cli.*;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -11,8 +12,16 @@ import org.apache.log4j.Logger;
 
 public class Main {
     static Logger log = Logger.getLogger(Main.class.getName());
+    Thread driverThread;
+    Thread metricThread;
+    Metrics metrics;
 
     public static void main(String[] args) {
+        Main main = new Main();
+        main.run(args);
+    }
+
+    public void run(String args[]) {
         CommandLine cmdLine = null;
         Driver driver = null;
         Integer testDuration = 10;
@@ -57,9 +66,18 @@ public class Main {
         }
 
         driver.setRunning(false);
+        metrics.setRunning(false);
+
+        try {
+            Thread.sleep(5 * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        driverThread.interrupt();
     }
 
-    private static Driver startProducerTest(CommandLine cmdLine) {
+    private Driver startProducerTest(CommandLine cmdLine) {
         String topic = "__driver";
         String configFile = null;
         int payloadSize = 4092;
@@ -98,18 +116,18 @@ public class Main {
         }
 
         ProducerDriver producerDriver = new ProducerDriver(configFile, topic, numThread, payloadSize, replication, partitions);
-        Thread thread = new Thread(producerDriver);
-        ProducerDriverMetrics producerDriverMetrics = ProducerDriverMetrics.getShared();
-        producerDriverMetrics.setMinimalist(cmdLine.hasOption("m"));
-        Thread statistics = new Thread(producerDriverMetrics);
-        statistics.setDaemon(true);
-        thread.start();
-        statistics.start();
+        driverThread = new Thread(producerDriver);
+        metrics = ProducerDriverMetrics.getShared();
+        metrics.setMinimalist(cmdLine.hasOption("m"));
+        metricThread = new Thread(metrics);
+        metricThread.setDaemon(true);
+        metricThread.start();
+        driverThread.start();
         return producerDriver;
     }
 
 
-    private static Driver startConsumerTest(CommandLine cmdLine) {
+    private Driver startConsumerTest(CommandLine cmdLine) {
         String topic = "__driver";
         String configFile;
         int payloadSize = 4092;
@@ -137,14 +155,13 @@ public class Main {
         }
 
         ConsumerDriver consumerDriver = new ConsumerDriver(configFile, topic, numThread);
-        Thread thread = new Thread(consumerDriver);
-        ConsumerMetrics driverMetric = ConsumerMetrics.getShared();
-        driverMetric.setMinimalist(cmdLine.hasOption("m"));
-        Thread statistics = new Thread(driverMetric);
-        statistics.setDaemon(true);
-        thread.start();
-        statistics.start();
-
+        driverThread = new Thread(consumerDriver);
+        metrics = ConsumerMetrics.getShared();
+        metrics.setMinimalist(cmdLine.hasOption("m"));
+        metricThread = new Thread(metrics);
+        metricThread.setDaemon(true);
+        driverThread.start();
+        metricThread.start();
         return consumerDriver;
     }
 

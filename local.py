@@ -15,6 +15,7 @@ import sys
 import json
 import os
 from lib import executor_local
+from fabulous import color
 
 
 def launch_test():
@@ -33,4 +34,5 @@ def launch_test():
             test.run()
 
 
+color.section("Der Prozess - Local Orchestrator!")
 launch_test()

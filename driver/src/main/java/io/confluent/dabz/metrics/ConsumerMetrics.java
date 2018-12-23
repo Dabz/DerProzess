@@ -7,7 +7,6 @@ public class ConsumerMetrics extends Metrics {
     private AtomicLong totalNumberOfMessagesConsumed = new AtomicLong(0);
     private AtomicLong totalSizeOfMessagesConsumed = new AtomicLong(0);
     private AtomicLong totalTimePartionHasBeenReset = new AtomicLong(0);
-    private Boolean minimalist = false;
 
     public static ConsumerMetrics getShared() {
         return shared;
@@ -25,14 +24,6 @@ public class ConsumerMetrics extends Metrics {
         return totalTimePartionHasBeenReset;
     }
 
-    public Boolean getMinimalist() {
-        return minimalist;
-    }
-
-    public void setMinimalist(Boolean minimalist) {
-        this.minimalist = minimalist;
-    }
-
     @Override
     public void run() {
         waitUntilReady();
@@ -41,14 +32,14 @@ public class ConsumerMetrics extends Metrics {
         long previousSizeOfMessagesProduced = shared.totalSizeOfMessagesConsumed.get();
 
         try {
-            while (true) {
+            while (this.getRunning()) {
                 Thread.sleep(1000);
                 long deltaNumberOfMessages = shared.totalNumberOfMessagesConsumed.get() - previousNumberOfMessageProduced;
                 long deltaSizeOfmessages = shared.totalSizeOfMessagesConsumed.get() - previousSizeOfMessagesProduced;
                 previousNumberOfMessageProduced = shared.totalNumberOfMessagesConsumed.get();
                 previousSizeOfMessagesProduced = shared.totalSizeOfMessagesConsumed.get();
 
-                if (minimalist) {
+                if (this.getMinimalist()) {
                     printMachineReadable(deltaSizeOfmessages);
                 } else {
                     printHumanReadable(deltaNumberOfMessages, deltaSizeOfmessages);

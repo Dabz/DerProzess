@@ -11,7 +11,6 @@ public class ProducerDriverMetrics extends Metrics {
     private AtomicLong totalSizeOfMessagesProduced = new AtomicLong(0);
     private AtomicLong totalLatency = new AtomicLong(0);
     private AtomicLong tickCount = new AtomicLong(0);
-    private Boolean minimalist = false;
 
     public static ProducerDriverMetrics getShared() {
         return shared;
@@ -25,20 +24,12 @@ public class ProducerDriverMetrics extends Metrics {
         return totalSizeOfMessagesProduced;
     }
 
-    public Boolean getMinimalist() {
-        return minimalist;
-    }
-
-    public void setMinimalist(Boolean minimalist) {
-        this.minimalist = minimalist;
-    }
-
     @Override
     public void run() {
         waitUntilReady();
 
         try {
-            while (true) {
+            while (this.getRunning()) {
                 Thread.sleep(1000);
                 long deltaNumberOfMessages = shared.totalNumberOfMessagesProduced.getAndSet(0);
                 long deltaSizeOfmessages = shared.totalSizeOfMessagesProduced.getAndSet(0);
@@ -49,7 +40,7 @@ public class ProducerDriverMetrics extends Metrics {
                     deltaTick = 1;
                 }
 
-                if (minimalist) {
+                if (this.getMinimalist()) {
                     printMachineReadable(deltaNumberOfMessages, deltaSizeOfmessages, deltaLatency, deltaTick);
                 } else {
                     printHumanReadable(deltaNumberOfMessages, deltaSizeOfmessages, deltaLatency, deltaTick);

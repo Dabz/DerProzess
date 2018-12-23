@@ -11,7 +11,7 @@ Start local benchmarking of all the properties
 Tests should be located in the properties folder
 """
 
-import pprint
+import json
 import numpy
 from lib import properties as p
 
@@ -20,8 +20,9 @@ DRIVER_CMD = "java %s -jar driver/target/driver-1.0-SNAPSHOT-jar-with-dependenci
 
 
 def print_result(results):
-    pprint.pprint({"throughput": humanize_section(results["throughput"]),
-                   "latency": humanize_section(results["latency"])})
+    print(json.dumps({"throughput": humanize_section(results["throughput"]),
+                      "latency": humanize_section(results["latency"])},
+                     indent=2))
 
 
 def humanize_section(results):
