@@ -45,7 +45,7 @@ def render_3d_graph(results, xAxis, yAxix, zAxis):
         for result in json_data["results"]:
             xa = int(result["configuration"][xAxis])
             ya = int(result["configuration"][yAxix])
-            za = result[zAxis] / (1024 * 1024)
+            za = result["throughput"][zAxis] / (1024 * 1024)
             Z[Y.index(ya)][X.index(xa)] = int(za)
 
         xv, yv = np.meshgrid(X, Y)
@@ -80,7 +80,7 @@ def render_2d_graph_string(results, xAxis, zAxis):
 
         for result in json_data["results"]:
             X.append(result["configuration"][xAxis])
-            Y.append(int(result[zAxis]) / (1024 * 1024))
+            Y.append(int(result["throughput"][zAxis]) / (1024 * 1024))
 
         ax.bar(X, Y)
         ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
@@ -103,7 +103,7 @@ def render_2d_graph_string_from_file(results, zAxis):
 
         for result in json_data["results"]:
             X.append(json_data["test"])
-            Y.append(int(result[zAxis]) / (1024 * 1024))
+            Y.append(int(result["throughput"][zAxis]) / (1024 * 1024))
 
         ax.bar(X, Y)
         ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
@@ -125,7 +125,7 @@ def render_2d_graph(results, xAxis, zAxis):
         Y = []
 
         for result in json_data:
-            Y.append(int(result[zAxis]) / (1024 * 1024))
+            Y.append(int(result["throughput"][zAxis]) / (1024 * 1024))
             X.append(result["configuration"][xAxis])
 
         ax.plot(X, Y, label=xAxis, color='c', marker='o')

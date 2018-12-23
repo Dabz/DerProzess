@@ -1,15 +1,15 @@
-package io.confluent.dabz;
+package io.confluent.dabz.metrics;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-public class ConsumerStatistics implements Runnable {
-    private static ConsumerStatistics shared = new ConsumerStatistics();
+public class ConsumerMetrics extends Metrics {
+    private static ConsumerMetrics shared = new ConsumerMetrics();
     private AtomicLong totalNumberOfMessagesConsumed = new AtomicLong(0);
     private AtomicLong totalSizeOfMessagesConsumed = new AtomicLong(0);
     private AtomicLong totalTimePartionHasBeenReset = new AtomicLong(0);
     private Boolean minimalist = false;
 
-    public static ConsumerStatistics getShared() {
+    public static ConsumerMetrics getShared() {
         return shared;
     }
 
@@ -35,10 +35,7 @@ public class ConsumerStatistics implements Runnable {
 
     @Override
     public void run() {
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-        }
+        waitUntilReady();
 
         long previousNumberOfMessageProduced = shared.totalNumberOfMessagesConsumed.get();
         long previousSizeOfMessagesProduced = shared.totalSizeOfMessagesConsumed.get();

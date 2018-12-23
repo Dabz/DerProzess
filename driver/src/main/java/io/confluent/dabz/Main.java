@@ -1,5 +1,10 @@
 package io.confluent.dabz;
 
+import io.confluent.dabz.driver.ConsumerDriver;
+import io.confluent.dabz.driver.Driver;
+import io.confluent.dabz.driver.ProducerDriver;
+import io.confluent.dabz.metrics.ConsumerMetrics;
+import io.confluent.dabz.metrics.ProducerDriverMetrics;
 import org.apache.commons.cli.*;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.log4j.Logger;
@@ -94,9 +99,9 @@ public class Main {
 
         ProducerDriver producerDriver = new ProducerDriver(configFile, topic, numThread, payloadSize, replication, partitions);
         Thread thread = new Thread(producerDriver);
-        ProducerDriverStatistics producerDriverStatistics = new ProducerDriverStatistics();
-        producerDriverStatistics.setMinimalist(cmdLine.hasOption("m"));
-        Thread statistics = new Thread(producerDriverStatistics);
+        ProducerDriverMetrics producerDriverMetrics = ProducerDriverMetrics.getShared();
+        producerDriverMetrics.setMinimalist(cmdLine.hasOption("m"));
+        Thread statistics = new Thread(producerDriverMetrics);
         statistics.setDaemon(true);
         thread.start();
         statistics.start();
@@ -133,9 +138,9 @@ public class Main {
 
         ConsumerDriver consumerDriver = new ConsumerDriver(configFile, topic, numThread);
         Thread thread = new Thread(consumerDriver);
-        ConsumerStatistics driverStatistics = new ConsumerStatistics();
-        driverStatistics.setMinimalist(cmdLine.hasOption("m"));
-        Thread statistics = new Thread(driverStatistics);
+        ConsumerMetrics driverMetric = ConsumerMetrics.getShared();
+        driverMetric.setMinimalist(cmdLine.hasOption("m"));
+        Thread statistics = new Thread(driverMetric);
         statistics.setDaemon(true);
         thread.start();
         statistics.start();

@@ -57,14 +57,14 @@ class LocalExecutor(executor.Executor):
             args = ' --producer --config %s --payload-size %s --duration 30'
             prop_path = p.properties_to_file(prop)
             p.print_properties(prop)
-            subprocess.check_output(DRIVER_CMD + args % (prop_path, self.payload_size()), shell=True)
+            subprocess.check_output(executor.DRIVER_CMD + args % (prop_path, self.payload_size()), shell=True)
 
         print("starting testing %s for %s..." % (self.test_type, self.test_name))
         for properties in self.properties_to_test:
             args = ' --%s --config %s --payload-size %s -m --duration %s'
             prop_path = p.properties_to_file(properties)
             p.print_properties(properties)
-            stdout = subprocess.check_output(DRIVER_CMD + args %
+            stdout = subprocess.check_output(executor.DRIVER_CMD + args %
                                              (
                                                  self.test_type,
                                                  prop_path,

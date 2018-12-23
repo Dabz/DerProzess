@@ -1,12 +1,14 @@
-package io.confluent.dabz;
+package io.confluent.dabz.driver;
 
 import org.apache.kafka.clients.admin.*;
+import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
@@ -39,7 +41,12 @@ public abstract class Driver implements Runnable {
                     replicationFactor = (short) describeClusterResult.nodes().get().size();
                 }
                 NewTopic newTopic = new NewTopic(topic, partitions, replicationFactor);
+                newTopic.configs(new HashMap<String, String>()
+                {{
+                    put(TopicConfig.MESSAGE_TIMESTAMP_TYPE_CONFIG, "CreateTime");
+                }});
                 try {
+
                     adminClient.createTopics(Arrays.asList(newTopic)).all().get();
                 } catch (Exception ex) {
                     DescribeTopicsResult describeTopicsResult = adminClient.describeTopics(Arrays.asList(topic));

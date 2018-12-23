@@ -1,6 +1,6 @@
-package io.confluent.dabz;
+package io.confluent.dabz.driver;
 
-import com.fasterxml.jackson.databind.deser.std.NumberDeserializers;
+import io.confluent.dabz.metrics.ConsumerMetrics;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -19,6 +19,7 @@ public class ConsumerDriver extends Driver {
     private String configFile;
     private String topic;
     private int expectedNumberOfThreads;
+    private ConsumerMetrics consumerMetrics = ConsumerMetrics.getShared();
 
     public ConsumerDriver(String configFile, String topic, int expectedNumberOfThreads) {
         this.configFile = configFile;
@@ -49,14 +50,14 @@ public class ConsumerDriver extends Driver {
                     // If we reach the end of topic, seek to beginning
                     if (consumerRecords.count() <= 0) {
                         kafkaConsumer.seekToBeginning(consumerRecords.partitions());
-                        ConsumerStatistics.getShared().getTotalTimePartionHasBeenReset().addAndGet(1);
+                        ConsumerMetrics.getShared().getTotalTimePartionHasBeenReset().addAndGet(1);
                         continue;
                     }
 
-                    ConsumerStatistics.getShared().getTotalNumberOfMessagesConsumed().addAndGet(consumerRecords.count());
+                    ConsumerMetrics.getShared().getTotalNumberOfMessagesConsumed().addAndGet(consumerRecords.count());
 
                     for (ConsumerRecord consumerRecord: consumerRecords) {
-                        ConsumerStatistics.getShared().getTotalSizeOfMessagesConsumed().addAndGet(consumerRecord.serializedKeySize() + consumerRecord.serializedValueSize());
+                        consumerMetrics.getTotalSizeOfMessagesConsumed().addAndGet(consumerRecord.serializedKeySize() + consumerRecord.serializedValueSize());
                     }
                 }
                 kafkaConsumer.close();
@@ -64,5 +65,7 @@ public class ConsumerDriver extends Driver {
 
             thread.start();
         }
+
+        consumerMetrics.setShouldStart(true);
     }
 }

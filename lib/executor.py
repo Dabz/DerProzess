@@ -11,15 +11,8 @@ Start local benchmarking of all the properties
 Tests should be located in the properties folder
 """
 
-import os
-import subprocess
-import tempfile
 import pprint
 import numpy
-import json
-import sys
-import time
-import paramiko
 from lib import properties as p
 
 JVM_OPTION = ""
@@ -27,11 +20,48 @@ DRIVER_CMD = "java %s -jar driver/target/driver-1.0-SNAPSHOT-jar-with-dependenci
 
 
 def print_result(results):
+    pprint.pprint({"throughput": humanize_section(results["throughput"]),
+                   "latency": humanize_section(results["latency"])})
+
+
+def humanize_section(results):
     human_results = {"average": p.humanize_size(results["average"]),
                      "max": p.humanize_size(results["max"]),
                      "min": p.humanize_size(results["min"]),
                      "median": p.humanize_size(results["median"])}
-    pprint.pprint(human_results)
+    return human_results
+
+
+def compute_section(metrics, lines):
+    average = numpy.asscalar(numpy.mean(metrics))
+    max = numpy.asscalar(numpy.max(metrics))
+    min = numpy.asscalar(numpy.min(metrics))
+    median = numpy.asscalar(numpy.median(metrics))
+
+    return {"average": average,
+            "max": max,
+            "min": min,
+            "count": len(lines),
+            "median": median}
+
+
+def merge_section(metrics):
+    average_throughtput = numpy.asscalar(numpy.mean([res["average"] for res in metrics]))
+    max = numpy.asscalar(numpy.max([res["max"] for res in metrics]))
+    min = numpy.asscalar(numpy.max([res["min"] for res in metrics]))
+    median = numpy.asscalar(numpy.median([res["median"] for res in metrics]))
+    count = numpy.asscalar(numpy.sum([res["count"] for res in metrics]))
+
+    return {"average": average_throughtput,
+            "max": max,
+            "min": min,
+            "median": median,
+            "count": count}
+
+
+def merge_results(results):
+    return {"throughput": merge_section(results["throughput"]),
+            "latency": merge_section(results["latency"])}
 
 
 class Executor:
@@ -90,30 +120,14 @@ class Executor:
         """
         lines = results.splitlines()
         throughput = []
+        latency = []
         for line in lines:
-            if line is not None and not line == "":
-                throughput.append(int(line))
+            if line is None or line == "":
+                continue
+            csv = line.split(",")
+            throughput.append(int(csv[0]))
+            latency.append(int(csv[1]))
 
-        average_throughput = numpy.asscalar(numpy.mean(throughput))
-        max = numpy.asscalar(numpy.max(throughput))
-        min = numpy.asscalar(numpy.min(throughput))
-        median = numpy.asscalar(numpy.median(throughput))
-
-        return {"average": average_throughput,
-                "max": max,
-                "min": min,
-                "count": len(lines),
-                "median": median}
-
-    def merge_results(self, results):
-        average_throughtput = numpy.asscalar(numpy.mean([res["average"] for res in results]))
-        max = numpy.asscalar(numpy.max([res["max"] for res in results]))
-        min = numpy.asscalar(numpy.max([res["min"] for res in results]))
-        median = numpy.asscalar(numpy.median([res["median"] for res in results]))
-        count = numpy.asscalar(numpy.sum([res["count"] for res in results]))
-
-        return {"average": average_throughtput,
-                "max": max,
-                "min": min,
-                "median": median,
-                "count": count}
+        return {"throughput": compute_section(throughput, lines),
+                "latency": compute_section(latency, lines)
+                }

@@ -98,7 +98,7 @@ class CloudExecutor(executor.Executor):
             for t in threads:
                 t.join()
 
-            result = self.merge_results(res)
+            result = executor.merge_results(res)
             results["results"].append(result)
 
             executor.print_result(result)

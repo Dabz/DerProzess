@@ -1,24 +1,16 @@
-package io.confluent.dabz;
+package io.confluent.dabz.driver;
 
-import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.DescribeTopicsResult;
-import org.apache.kafka.clients.admin.KafkaAdminClient;
+import io.confluent.dabz.metrics.ProducerDriverMetrics;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.apache.kafka.common.serialization.BytesSerializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.log4j.Logger;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ProducerDriver extends Driver {
@@ -29,7 +21,7 @@ public class ProducerDriver extends Driver {
     private int expectedSizeOfPayload;
     private short numPartitions;
     private short replicationFactor;
-    private boolean running = true;
+    private ProducerDriverMetrics producerDriverMetrics = ProducerDriverMetrics.getShared();
 
     public ProducerDriver(String configFile, String topic, int expectedNumberOfThreads,
                           int expectedSizeOfPayload, short replicationFactor, short numPartitions) {
@@ -70,18 +62,18 @@ public class ProducerDriver extends Driver {
                     ProducerRecord<Integer, byte[]> producerRecord = new ProducerRecord<>(topic, key.getAndIncrement(), payload);
                     kafkaProducer.send(producerRecord, ((metadata, exception) -> {
                         if (exception != null) {
-                            ProducerDriverStatistics.getShared().getTotalNumberOfMessageProduced().incrementAndGet();
+                            ProducerDriverMetrics.getShared().getTotalNumberOfMessageProduced().incrementAndGet();
                             exception.printStackTrace(System.err);
                         }
                         if (metadata != null) {
-                            ProducerDriverStatistics.getShared().getTotalNumberOfMessageProduced().incrementAndGet();
-                            ProducerDriverStatistics.getShared().getTotalSizeOfMessagesProduced().addAndGet(metadata.serializedKeySize() + metadata.serializedValueSize());
+                            producerDriverMetrics.updateCounter(metadata);
                         }
                     }));
                 }
                 kafkaProducer.close();
             }).start();
         }
+        producerDriverMetrics.setShouldStart(true);
     }
 
     public byte[] generatePayload(int size) {
