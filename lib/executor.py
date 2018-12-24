@@ -129,8 +129,12 @@ class Executor:
             if line is None or line == "":
                 continue
             csv = line.split(",")
-            throughput.append(int(csv[0]))
-            latency.append(int(csv[1]))
+            try:
+                throughput.append(int(csv[0]))
+                latency.append(int(csv[1]))
+            except ValueError:
+                raise ValueError(results)
+                break
 
         return {"throughput": compute_section(throughput, lines),
                 "latency": compute_section(latency, lines)

@@ -2,6 +2,7 @@ package io.confluent.dabz.driver;
 
 import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.common.config.TopicConfig;
+import org.apache.kafka.common.errors.TopicExistsException;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 
 import java.io.FileNotFoundException;
@@ -46,11 +47,14 @@ public abstract class Driver implements Runnable {
                     put(TopicConfig.MESSAGE_TIMESTAMP_TYPE_CONFIG, "CreateTime");
                 }});
                 try {
-
                     adminClient.createTopics(Arrays.asList(newTopic)).all().get();
-                } catch (Exception ex) {
-                    DescribeTopicsResult describeTopicsResult = adminClient.describeTopics(Arrays.asList(topic));
-                    describeTopicsResult.all().get();
+                } catch (TopicExistsException ex) {
+                    // Ignoring safely this exception as another process might have
+                    // created the topic
+                } catch (ExecutionException ex) {
+                    if (! (ex.getCause() instanceof TopicExistsException)) {
+                        throw ex;
+                    }
                 }
             } else {
                 throw e;

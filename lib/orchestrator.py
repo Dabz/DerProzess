@@ -46,7 +46,7 @@ class CloudOrchestrator:
             section(provisioner.sweet_name())
             print(bold("Configuration"))
             print(json.dumps(properties, indent=2))
-            print(plain(bold("Provisioning "), underline(bold(provisioner.sweet_name()))))
+            print(plain(bold("Provisioning ")))
             provisioner.apply_if_required()
             print(plain(bold("Benchmarking")))
             self.run_for_environment(provisioner)
