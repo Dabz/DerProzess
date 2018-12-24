@@ -26,7 +26,7 @@ class CloudOrchestrator:
     test_name = ""
     test_type = ""
 
-    def __init__(self, json_data, tests, destroy=False):
+    def __init__(self, json_data, tests, destroy=True):
         self.destroy = destroy
         self.tests = tests
         self.configuration_to_test = []

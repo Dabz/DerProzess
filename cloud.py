@@ -55,14 +55,14 @@ def launch_test(args):
             tests.append(json_data)
 
     brokers = gen_broker_config(tests)
-    orch = orchestrator.CloudOrchestrator(brokers, tests)
+    orch = orchestrator.CloudOrchestrator(brokers, tests, destroy=args.destroy)
     orch.run()
 
 
 parser = argparse.ArgumentParser(description='Kafka load test on AWS')
-parser.add_argument('--destroy', dest='destroy',
+parser.add_argument('--keep', dest='destroy',
                     help='destroy the environment after testing',
-                    action='store_true')
+                    action='store_false')
 
 parser.add_argument('tests', nargs='*', help='test files')
 
