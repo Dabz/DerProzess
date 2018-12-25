@@ -1,0 +1,14 @@
+{
+	"test": "acksall",
+	"type": "producer",
+	"properties": {
+		"linger.ms": 10,
+		"batch.size": 65536,
+		"acks": "all",
+		"compression.type": "none"
+	},
+	"brokers": {
+		"broker-count": [2,3,5],
+		"broker-instance-type": "m5.large"
+	}
+}
