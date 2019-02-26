@@ -89,6 +89,13 @@ def humanize_size(size):
 
 
 def gen_properties_to_test(properties, ranged_properties):
+    """
+    :param properties: fixed properties
+    :param ranged_properties: dictionary of properties with multiple values
+    (e.g. {"broker-count": [3,4,5], "driver-count": [3,4,5]}
+    :return: yield all the possible combination of the ranged properties
+    combined with the fixed properties
+    """
     if len(ranged_properties) <= 0:
         yield properties
 
@@ -97,3 +104,15 @@ def gen_properties_to_test(properties, ranged_properties):
         res = properties.copy()
         res.update(copy)
         yield res
+
+
+def properties_to_client_options():
+    """
+    :return: stringify version of the properties (e.g. {"duration": "10"} become "--duration 10"
+    properties are fetched from global configuration (p.CONF)
+    """
+    result = ""
+    for key in CONF["drivers"]:
+        result += "--%s %s " % (key, str(CONF["drivers"][key]))
+
+    return result

@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
-public abstract class Driver implements Runnable {
+public abstract class Driver {
     private Boolean running = true;
 
     public void setRunning(boolean running) {
@@ -46,8 +46,9 @@ public abstract class Driver implements Runnable {
                 {{
                     put(TopicConfig.MESSAGE_TIMESTAMP_TYPE_CONFIG, "CreateTime");
                 }});
+                CreateTopicsOptions createTopicsOptions = new CreateTopicsOptions().timeoutMs(300000);
                 try {
-                    adminClient.createTopics(Arrays.asList(newTopic)).all().get();
+                    adminClient.createTopics(Arrays.asList(newTopic), createTopicsOptions).all().get();
                 } catch (TopicExistsException ex) {
                     // Ignoring safely this exception as another process might have
                     // created the topic

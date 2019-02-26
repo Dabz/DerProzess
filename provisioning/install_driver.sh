@@ -7,12 +7,13 @@
 #
 
 if [ "$#" -lt 1 ]; then
-  echo "Usage ./install_driver.sh BROKER_URI TESTS..."
+  echo "Usage ./install_driver.sh BROKER_URI TEST TESTS..."
   exit 1
 fi
 
 BROKER_URI=$1
 INFLUXDB_HOST=$2
+TEST=$3
 
 sudo yum install -y curl which wget
 sudo rpm --import https://packages.confluent.io/rpm/5.0/archive.key
@@ -25,6 +26,8 @@ install_telegraf() {
 
   sudo sed -i "s/#HOSTNAME#/kafka-$BROKER_ID/" /etc/telegraf/telegraf.conf
   sudo sed -i "s~#INFLUXDB_HOST#~$INFLUXDB_HOST~" /etc/telegraf/telegraf.conf
+  sudo sed -i "s~#TEST#~$TEST~" /etc/telegraf/telegraf.conf
+  sudo sed -i "s~#TYPE#~driver~" /etc/telegraf/telegraf.conf
 
   sudo systemctl enable telegraf 
   sudo systemctl start telegraf

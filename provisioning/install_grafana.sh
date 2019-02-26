@@ -28,7 +28,7 @@ install_grafana() {
   sudo yum install -y confluent-kafka-2.11
   sudo yum install -y grafana
 
-	sudo grafana-cli plugins install grafana-piechart-panel
+  sudo grafana-cli plugins install grafana-piechart-panel
   sudo systemctl enable grafana-server
   sudo systemctl restart grafana-server
 }

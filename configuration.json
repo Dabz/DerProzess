@@ -1,6 +1,9 @@
 {
-	"duration": "10",
 	"clients" : {
+	},
+	"drivers": {
+		"payload-size": "10240",
+		"duration": "10"
 	},
 	"local": {
 		"bootstrap.servers": "localhost:9092"
@@ -11,10 +14,11 @@
 		"ssh-keyname": "damien-paris",
 		"owner": "dgasparina",
 		"ownershort": "dga",
-		"broker-instance-type": "t2.xlarge",
+		"broker-instance-type": "m5.xlarge",
 		"driver-instance-type": "c5.2xlarge",
 		"broker-count": 3,
-		"driver-count": 3
+		"driver-count": 2,
+		"partition-count": 1000
 	}
 }
 

@@ -62,17 +62,15 @@ class LocalExecutor(executor.Executor):
         count = 0
         for properties in self.properties_to_test:
             count += 1
-            args = ' --%s --config %s --payload-size %s -m --duration %s'
+            args = ' -m --%s --config %s ' + p.properties_to_client_options()
             prop_path = p.properties_to_file(properties)
-            section("Test #%d" % (count) )
+            section("Test #%d" % count)
             print(bold(underline("Configuration")))
             p.print_properties(properties)
             stdout = subprocess.check_output(executor.DRIVER_CMD + args %
                                              (
                                                  self.test_type,
-                                                 prop_path,
-                                                 self.payload_size(),
-                                                 p.CONF['duration']
+                                                 prop_path
                                              ),
                                              shell=True).decode('utf-8')
             result = self.process_results(stdout)

@@ -60,7 +60,8 @@ def launch_test(args):
 
 
 parser = argparse.ArgumentParser(description='Kafka load test on AWS')
-parser.add_argument('--keep', dest='destroy',
+parser.add_argument('--keep',
+                    dest='destroy',
                     help='destroy the environment after testing',
                     action='store_false')
 

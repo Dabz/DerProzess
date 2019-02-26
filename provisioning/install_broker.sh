@@ -7,7 +7,7 @@
 #
 
 if [ "$#" -lt 3 ]; then
-  echo "Usage ./install_confluent.sh ZOOKEEPER_URI BROKER_ID BROKER_CONF INFLUX_HOST"
+  echo "Usage ./install_confluent.sh ZOOKEEPER_URI BROKER_ID BROKER_CONF INFLUX_HOST TEST"
   exit 1
 fi
 
@@ -15,6 +15,7 @@ ZOOKEEPER_URI=$1
 BROKER_ID=$2
 BROKER_CONF=$3
 INFLUXDB_HOST=$4
+TEST=$5
 
 sudo yum install -y curl which wget
 sudo rpm --import https://packages.confluent.io/rpm/5.0/archive.key
@@ -55,6 +56,8 @@ install_telegraf() {
 
   sudo sed -i "s/#HOSTNAME#/kafka-$BROKER_ID/" /etc/telegraf/telegraf.conf
   sudo sed -i "s~#INFLUXDB_HOST#~$INFLUXDB_HOST~" /etc/telegraf/telegraf.conf
+  sudo sed -i "s~#TEST#~$TEST~" /etc/telegraf/telegraf.conf
+  sudo sed -i "s~#TYPE#~broker~" /etc/telegraf/telegraf.conf
   sudo sed -i "s/#HOSTNAME#/`hostname -f`/" /etc/telegraf/telegraf.d/kafka.conf
 
   sudo systemctl enable telegraf 

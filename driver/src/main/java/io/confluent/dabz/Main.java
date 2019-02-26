@@ -3,6 +3,7 @@ package io.confluent.dabz;
 import io.confluent.dabz.driver.ConsumerDriver;
 import io.confluent.dabz.driver.Driver;
 import io.confluent.dabz.driver.ProducerDriver;
+import io.confluent.dabz.influx.InfluxDBClient;
 import io.confluent.dabz.metrics.ConsumerMetrics;
 import io.confluent.dabz.metrics.Metrics;
 import io.confluent.dabz.metrics.ProducerDriverMetrics;
@@ -10,21 +11,23 @@ import org.apache.commons.cli.*;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
+
 public class Main {
     static Logger log = Logger.getLogger(Main.class.getName());
-    Thread driverThread;
     Thread metricThread;
     Metrics metrics;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Main main = new Main();
         main.run(args);
     }
 
-    public void run(String args[]) {
+    public void run(String args[]) throws IOException {
         CommandLine cmdLine = null;
         Driver driver = null;
         Integer testDuration = 10;
+        InfluxDBClient influxDBClient = InfluxDBClient.getShared();
 
         try {
             cmdLine = parseOptions(args);
@@ -41,12 +44,20 @@ public class Main {
             System.exit(0);
         }
 
+        if (cmdLine.hasOption("influx")) {
+            if (! cmdLine.hasOption("test")) {
+                log.error("when --influx is specified, --test option is required");
+                System.exit(1);
+            }
+            influxDBClient.configure(cmdLine.getOptionValue("influx"), cmdLine.getOptionValue("test"));
+        }
+
         if (cmdLine.hasOption("producer")) {
             driver = startProducerTest(cmdLine);
         }
         else if (cmdLine.hasOption("consumer")) {
             driver = startConsumerTest(cmdLine);
-        } else if (cmdLine.hasOption("l")) {
+        } else if (cmdLine.hasOption("latency")) {
             // TODO
         } else {
             HelpFormatter formatter = new HelpFormatter();
@@ -54,10 +65,15 @@ public class Main {
             System.exit(0);
         }
 
-
         if (cmdLine.hasOption("d")) {
             testDuration = Integer.valueOf(cmdLine.getOptionValue("duration"));
         }
+
+        if (influxDBClient.isOnline()) {
+            influxDBClient.writeAnnotation("start testing");
+        }
+
+        driver.run();
 
         try {
             Thread.sleep(testDuration * 1000);
@@ -68,13 +84,9 @@ public class Main {
         driver.setRunning(false);
         metrics.setRunning(false);
 
-        try {
-            Thread.sleep(5 * 1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if (influxDBClient.isOnline()) {
+            influxDBClient.writeAnnotation("stop testing");
         }
-
-        driverThread.interrupt();
     }
 
     private Driver startProducerTest(CommandLine cmdLine) {
@@ -116,13 +128,11 @@ public class Main {
         }
 
         ProducerDriver producerDriver = new ProducerDriver(configFile, topic, numThread, payloadSize, replication, partitions);
-        driverThread = new Thread(producerDriver);
         metrics = ProducerDriverMetrics.getShared();
         metrics.setMinimalist(cmdLine.hasOption("m"));
         metricThread = new Thread(metrics);
         metricThread.setDaemon(true);
         metricThread.start();
-        driverThread.start();
         return producerDriver;
     }
 
@@ -155,12 +165,10 @@ public class Main {
         }
 
         ConsumerDriver consumerDriver = new ConsumerDriver(configFile, topic, numThread);
-        driverThread = new Thread(consumerDriver);
         metrics = ConsumerMetrics.getShared();
         metrics.setMinimalist(cmdLine.hasOption("m"));
         metricThread = new Thread(metrics);
         metricThread.setDaemon(true);
-        driverThread.start();
         metricThread.start();
         return consumerDriver;
     }
@@ -177,8 +185,10 @@ public class Main {
         options.addOption("d", "duration", true, "maximum duration in seconds of the test (default 20s)");
         options.addOption("m", "minimalist", false, "machine friendly output");
         options.addOption("rf", "replication", true, "replication factor");
-        options.addOption("pt", "partitions", true, "number of partitions");
+        options.addOption("pt", "partition", true, "number of partitions");
         options.addOption("h", "help", false, "display help");
+        options.addOption("influx", "influx", true, "InfluxDB output file");
+        options.addOption("test", "test", true, "Test name");
 
         return options;
     }

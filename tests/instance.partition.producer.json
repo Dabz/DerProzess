@@ -4,11 +4,9 @@
 	"properties": {
 		"linger.ms": 10,
 		"batch.size": 65536,
-		"acks": "all",
 		"compression.type": "none"
 	},
 	"brokers": {
-		"broker-count": [2,3,5],
-		"broker-instance-type": "m5.large"
+		"partition-count": [10,100,500,1000,2000,3000,4000,5000]
 	}
 }

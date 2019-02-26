@@ -38,6 +38,10 @@ variable "fingerprint" {
   default = ""
 }
 
+variable "test-name" {
+  default = "results"
+}
+
 module "grafana" {
   source     = "./grafana"
   region     = "${var.region}"
@@ -52,6 +56,7 @@ module "kafka-cluster" {
   broker-count         = "${var.broker-count}"
   driver-count         = "${var.driver-count}"
   name                 = "cluster"
+  test-name            = "${var.test-name}"
   region               = "${var.region}"
   owner                = "${var.owner}"
   ownershort           = "${var.ownershort}"

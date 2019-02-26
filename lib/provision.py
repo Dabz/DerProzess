@@ -88,6 +88,7 @@ class Provision:
         self.terraform.workspace("select", self.uid)
         self.terraform.apply(skip_plan=True, var={
             "broker-count": self.cloud_conf["broker-count"],
+            "test-name": self.uid,
             "driver-count": self.cloud_conf["driver-count"],
             "key-file": self.cloud_conf["ssh-key"],
             "keyname": self.cloud_conf["ssh-keyname"],
@@ -142,3 +143,14 @@ class Provision:
         terraform_lock.release()
 
         return drivers
+
+    def broker_host(self):
+        config = {}
+
+        terraform_lock.acquire()
+
+        self.terraform.workspace("select", self.uid)
+        brokers = self.terraform.output("kafka-brokers-public-dns")
+        terraform_lock.release()
+
+        return brokers

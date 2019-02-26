@@ -68,6 +68,12 @@ def merge_results(results):
             "latency": merge_section([res["latency"] for res in results])}
 
 
+def partition_count(cloud_conf):
+    if "partition-count" in cloud_conf:
+        return cloud_conf["partition-count"]
+    return 50
+
+
 class Executor:
     """
     Class representing a single test to run (with potential multiple properties)
@@ -85,16 +91,15 @@ class Executor:
     """
     Contains all the fixed (immutable) properties that need
     to be used in the test
+    e.g. {"broker-count": 3, "driver-count": 3}
     """
     properties = []
 
     """
     Contains the set of properties that need are containing multiple values
+    e.g. {"broker-count": [3,4,5], "driver-count": [3,4,5]}
     """
     ranged_properties = []
-
-    def payload_size(self):
-        return 1024
 
     def is_local(self):
         return self.provisioner is None

@@ -12,6 +12,7 @@ import java.io.FileReader;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 public class ProducerDriver extends Driver {
     static Logger log = Logger.getLogger(ProducerDriver.class.getName());
@@ -31,22 +32,23 @@ public class ProducerDriver extends Driver {
         this.expectedSizeOfPayload = expectedSizeOfPayload;
         this.replicationFactor = replicationFactor;
         this.numPartitions = numPartitions;
-    }
 
-    @Override
-    public void run() {
         try {
             createTopic(configFile, topic, replicationFactor, numPartitions);
         } catch (Exception e) {
             log.error("can not create topic", e);
             return;
         }
+    }
+
+    @Override
+    public void run() {
         Properties properties = new Properties();
         try {
             properties.load(new FileReader(configFile));
             properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
             properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
-            
+
         } catch (Exception e) {
             log.error("can not read properties file", e);
             return;
@@ -73,7 +75,6 @@ public class ProducerDriver extends Driver {
                     } catch (Exception e) {
                         e.printStackTrace(System.err);
                     }
-                    ;
                 }
                 kafkaProducer.close();
             }).start();

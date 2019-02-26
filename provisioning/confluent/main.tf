@@ -5,6 +5,7 @@ variable "owner" {}
 variable "ownershort" {}
 variable "key-file" {}
 variable "influx-host" {}
+variable "test-name" {}
 
 variable "broker-count" {
   default = 3
@@ -216,7 +217,7 @@ resource "aws_instance" "brokers" {
   key_name        = "${var.key-name}"
 
   root_block_device {
-    volume_size = 100
+    volume_size = 500
   }
 
   tags {
@@ -253,7 +254,7 @@ resource "aws_instance" "brokers" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /home/ec2-user/install_broker.sh",
-      "/home/ec2-user/install_broker.sh ${aws_instance.zookeepers.0.private_dns} ${count.index} ${var.broker-configuration} ${var.influx-host}",
+      "/home/ec2-user/install_broker.sh ${aws_instance.zookeepers.0.private_dns} ${count.index} ${var.broker-configuration} ${var.influx-host} ${var.test-name}",
     ]
 
     connection {
@@ -338,7 +339,7 @@ resource "aws_instance" "drivers" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /home/ec2-user/install_driver.sh",
-      "/home/ec2-user/install_driver.sh ${aws_instance.brokers.0.private_dns} ${var.influx-host}",
+      "/home/ec2-user/install_driver.sh ${aws_instance.brokers.0.private_dns} ${var.influx-host} ${var.test-name}",
     ]
 
     connection {
