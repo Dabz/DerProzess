@@ -1,7 +1,9 @@
 package io.confluent.dabz.metrics;
 
+import io.confluent.dabz.influx.InfluxDBClient;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -27,14 +29,15 @@ public class ProducerDriverMetrics extends Metrics {
     @Override
     public void run() {
         waitUntilReady();
+        InfluxDBClient influxDBClient = InfluxDBClient.getShared();
 
         try {
             while (this.getRunning()) {
                 Thread.sleep(1000);
-                long deltaNumberOfMessages = shared.totalNumberOfMessagesProduced.getAndSet(0);
-                long deltaSizeOfmessages = shared.totalSizeOfMessagesProduced.getAndSet(0);
-                long deltaLatency = shared.totalLatency.getAndSet(0);
-                long deltaTick = shared.tickCount.getAndSet(0);
+                long deltaNumberOfMessages = ProducerDriverMetrics.shared.totalNumberOfMessagesProduced.getAndSet(0);
+                long deltaSizeOfmessages = ProducerDriverMetrics.shared.totalSizeOfMessagesProduced.getAndSet(0);
+                long deltaLatency = ProducerDriverMetrics.shared.totalLatency.getAndSet(0);
+                long deltaTick = ProducerDriverMetrics.shared.tickCount.getAndSet(0);
 
                 if (deltaTick == 0) {
                     deltaTick = 1;
@@ -45,8 +48,14 @@ public class ProducerDriverMetrics extends Metrics {
                 } else {
                     printHumanReadable(deltaNumberOfMessages, deltaSizeOfmessages, deltaLatency, deltaTick);
                 }
+
+                if (influxDBClient.isOnline()) {
+                    influxDBClient.writePoint(deltaNumberOfMessages, deltaSizeOfmessages, (deltaLatency / deltaTick));
+                }
             }
         } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

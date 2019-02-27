@@ -6,6 +6,8 @@
 # Distributed under terms of the MIT license.
 #
 
+influx -execute 'DROP DATABASE prozess; CREATE DATABASE prozess;'
+
 for file in `find results* -name '*annota*'`; do 
 	curl -i -XPOST 'http://localhost:8086/write?db=prozess' --data-binary @$file; 
 done

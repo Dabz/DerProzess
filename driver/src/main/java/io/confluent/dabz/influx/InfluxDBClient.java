@@ -1,7 +1,5 @@
 package io.confluent.dabz.influx;
 
-import org.influxdb.dto.Point;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -14,7 +12,8 @@ public class InfluxDBClient {
     private String testName;
 
     private final String DBNAME = "telegraf";
-    private final String SERIESNAME = "annotation";
+    private final String ANNOTATIONSERIESNAME = "annotation";
+    private final String POINTSERIESNAME = "drivers";
 
     public static InfluxDBClient getShared() {
         return shared;
@@ -32,9 +31,16 @@ public class InfluxDBClient {
         return this.outputPath != null;
     }
 
-    public void writeAnnotation(String value) throws IOException {
+    public synchronized void writeAnnotation(String value) throws IOException {
         // Format MEASUREMENT,TAGS1=VAL1,... FIELD1=VAL1,... TIME
-        String annotation = String.format("%s,test=%s text=\"%s (%s)\",test=\"%s\" %d000000\n", SERIESNAME, this.testName, value, this.testName, this.testName, new Date().getTime());
+        String annotation = String.format("%s,test=%s text=\"%s (%s)\",test=\"%s\" %d000000\n", ANNOTATIONSERIESNAME, this.testName, value, this.testName, this.testName, new Date().getTime());
+        Files.write(Paths.get(this.outputPath), annotation.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+    }
+
+    public synchronized void writePoint(long numberOfMessage, long sizeOfMessage, long latency) throws IOException {
+        // Format MEASUREMENT,TAGS1=VAL1,... FIELD1=VAL1,... TIME
+        String annotation = String.format("%s,test=%s numberOfMessage=%d,sizeOfMessage=%d,latency=%d %d000000\n",
+                POINTSERIESNAME, this.testName, numberOfMessage, sizeOfMessage, latency, new Date().getTime());
         Files.write(Paths.get(this.outputPath), annotation.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
     }
 

@@ -1,12 +1,13 @@
 {
-	"test": "acksall",
+	"test": "partition_acks",
 	"type": "producer",
 	"properties": {
 		"linger.ms": 10,
 		"batch.size": 65536,
-		"compression.type": "none"
+		"compression.type": "none",
+		"acks": ["1", "all"]
 	},
 	"brokers": {
-		"partition-count": [10,100,500,1000,2000,3000,4000,5000]
+		"partition-count": [1,10,100,500,1000,4000,70000]
 	}
 }

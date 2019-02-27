@@ -2,8 +2,8 @@
 	"clients" : {
 	},
 	"drivers": {
-		"payload-size": "10240",
-		"duration": "10"
+		"payload-size": "1024",
+		"duration": "120"
 	},
 	"local": {
 		"bootstrap.servers": "localhost:9092"
