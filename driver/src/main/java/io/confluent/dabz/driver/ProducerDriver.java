@@ -48,6 +48,7 @@ public class ProducerDriver extends Driver {
             properties.load(new FileReader(configFile));
             properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
             properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
+            properties.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, Integer.MAX_VALUE);
 
         } catch (Exception e) {
             log.error("can not read properties file", e);

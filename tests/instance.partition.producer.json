@@ -5,9 +5,9 @@
 		"linger.ms": 10,
 		"batch.size": 65536,
 		"compression.type": "none",
-		"acks": ["1", "all"]
+		"acks": ["all", "1"]
 	},
 	"brokers": {
-		"partition-count": [1,10,100,500,1000,4000,70000]
+		"partition-count": [1,10,100,500,1000,4000,7000]
 	}
 }
