@@ -54,8 +54,7 @@ def launch_test(args):
             json_data = json.load(handler)
             tests.append(json_data)
 
-    brokers = gen_broker_config(tests)
-    orch = orchestrator.CloudOrchestrator(brokers, tests, destroy=args.destroy)
+    orch = orchestrator.CloudOrchestrator(tests, destroy=args.destroy)
     orch.run()
 
 

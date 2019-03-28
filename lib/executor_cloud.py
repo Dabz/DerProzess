@@ -29,24 +29,19 @@ class CloudExecutor(executor.Executor):
     Class representing a single test to run (with potential multiple properties)
     """
 
-    def __init__(self, json_data, provisioner, output_folder):
+    def __init__(self, properties, ranged_properties, provisioner, output_folder, test_name):
         self.output_folder = output_folder
+        self.test_name = test_name
         self.provisioner = provisioner
-        self.properties_to_test = []
         self.hosts = []
-        self.properties = {}
-        self.ranged_properties = {}
-        self.test_name = json_data["test"]
-        self.test_type = json_data["type"]
-        (self.properties, self.ranged_properties) = p.parse_properties(p.CONF["clients"])
-        (self.properties, self.ranged_properties) = p.parse_properties(json_data["properties"],
-                                                                       self.properties,
-                                                                       self.ranged_properties)
+        self.properties = properties
+        self.test_type = properties["type"]
+        self.ranged_properties = ranged_properties
+        self.properties["provision"] = provisioner.configurations()
 
         if not os.path.exists(output_folder):
             os.mkdir(output_folder)
 
-        self.test_name = "%s_%s" % (self.test_name, provisioner.sweet_name())
         driver_hosts = provisioner.driver_host()
         broker_hosts = provisioner.broker_host()
 
@@ -76,15 +71,6 @@ class CloudExecutor(executor.Executor):
             sftp = paramiko.SFTPClient.from_transport(t)
             self.hosts.append({"ssh": ssh, "sftp": sftp, "host": broker_host, "type": "broker"})
 
-        for prop in p.gen_properties_to_test(self.properties, self.ranged_properties):
-            if self.is_local():
-                (self.properties, _) = p.parse_properties(p.CONF["local"], prop)
-
-            else:
-                (self.properties, _) = p.parse_properties(provisioner.configurations(), prop)
-
-            self.properties_to_test.append(self.properties)
-
     def run(self):
         """
         Execute the test
@@ -103,17 +89,16 @@ class CloudExecutor(executor.Executor):
             stdin, stdout, stderr = self.ssh.exec_command(executor.DRIVER_CMD + args %
                                                           (prop_path, executor.partition_count(self.provisioner.cloud_conf)))
 
-        for properties in self.properties_to_test:
-            threads = []
-            for host in self.hosts:
-                if not host["type"] == "driver":
-                    continue
-                t = threading.Thread(target=self.run_on_one_host, args=(host, properties, res))
-                t.start()
-                threads.append(t)
+        threads = []
+        for host in self.hosts:
+            if not host["type"] == "driver":
+                continue
+            t = threading.Thread(target=self.run_on_one_host, args=(host, self.properties, res))
+            t.start()
+            threads.append(t)
 
-            for t in threads:
-                t.join()
+        for t in threads:
+            t.join()
 
             result = executor.merge_results(res)
             results["results"].append(result)

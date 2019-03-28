@@ -14,6 +14,7 @@ import tempfile
 import pprint
 import json
 import uuid
+import copy
 
 CONFIGURATION_PATH = "./configuration.json"
 CONF = json.load(open(CONFIGURATION_PATH))
@@ -29,6 +30,18 @@ def parse_properties(properties, default_fixed_properties={}, default_ranged_pro
     for property_name, property_value in properties.items():
         if isinstance(property_value, list):
             ranged_properties[property_name] = property_value
+        elif isinstance(property_value, dict):
+            fixed_properties[property_name], ranged_properties[property_name] = \
+                parse_properties(property_value,
+                                 default_fixed_properties.get(property_name, {}),
+                                 default_ranged_properties.get(property_name, {}))
+            if fixed_properties[property_name] == {}:
+                del fixed_properties[property_name]
+            if ranged_properties[property_name] == {}:
+                del ranged_properties[property_name]
+        elif property_name in fixed_properties and property_value != fixed_properties[property_name]:
+            ranged_properties[property_name] = [fixed_properties[property_name], property_value]
+            del fixed_properties[property_name]
         else:
             fixed_properties[property_name] = property_value
 
@@ -39,23 +52,39 @@ def get_combination(ranged_properties):
     """
     Returns a set of all combination for all ranged and fixed properties
     """
-    for combination in get_combination_internal(ranged_properties, []):
+    for combination in get_combination_internal(ranged_properties):
         yield combination
 
 
-def get_combination_internal(ranged_properties, visited_properties):
-    for property_name, values in ranged_properties.items():
-        if property_name in visited_properties:
-            continue
-        for value in values:
-            if len(ranged_properties) - len(visited_properties) <= 1:
+def get_combination_internal(ranged_properties):
+    if len(list(ranged_properties.keys())) == 1 and isinstance(list(ranged_properties.values())[0], list):
+        for property_name, values in ranged_properties.items():
+            for value in values:
                 yield {property_name: value}
-            else:
-                for combination in get_combination_internal(ranged_properties, visited_properties + [property_name]):
+        return
+
+    for property_name, values in ranged_properties.items():
+        if isinstance(values, dict):
+            for combination in get_combination_internal(ranged_properties[property_name]):
+                copy = {property_name: combination.copy()}
+                if len(ranged_properties.keys()) == 1:
+                    yield copy
+                    continue
+                dict_witout_key = ranged_properties.copy()
+                del dict_witout_key[property_name]
+                for combination in get_combination_internal(dict_witout_key):
+                    copy.update(combination.copy())
+                    yield copy
+            break
+        elif isinstance(values, list):
+            dict_witout_key = ranged_properties.copy()
+            del dict_witout_key[property_name]
+            for value in values:
+                for combination in get_combination_internal(dict_witout_key):
                     copy = combination.copy()
                     copy[property_name] = value
                     yield copy
-        break
+            break
 
 
 def properties_to_file(properties):
@@ -70,7 +99,14 @@ def properties_to_file(properties):
 
 
 def properties_to_aws(properties, sftp):
-    file_name = properties_to_file(properties)
+    merged_prop = {}
+    for top_prop, top_value in properties.items():
+        if top_prop in ["local", "duration", "brokers"]:
+            continue
+        if isinstance(top_value, dict):
+            for bot_prop, bot_value in top_value.items():
+                merged_prop[bot_prop] = bot_value
+    file_name = properties_to_file(merged_prop)
     to_name = "/tmp/%s.properties" % (uuid.uuid4())
     sftp.put(file_name, to_name)
     return to_name
@@ -99,11 +135,14 @@ def gen_properties_to_test(properties, ranged_properties):
     if len(ranged_properties) <= 0:
         yield properties
 
-    for combination in get_combination(ranged_properties):
-        copy = combination.copy()
-        res = properties.copy()
-        res.update(copy)
-        yield res
+    for res in get_combination(ranged_properties):
+        to_yield = copy.deepcopy(properties)
+        for key, values in res.items():
+            if key in to_yield:
+                to_yield[key].update(values.copy())
+            else:
+                to_yield[key] = values.copy()
+        yield to_yield
 
 
 def properties_to_client_options():
@@ -116,3 +155,24 @@ def properties_to_client_options():
         result += "--%s %s " % (key, str(CONF["drivers"][key]))
 
     return result
+
+
+def generate_uid(properties, ranged_properties):
+    """
+    :param properties:
+    :param ranged_properties:
+    :return:
+    """
+    ranged_values = []
+    res = ""
+    for key in ranged_properties.keys():
+        if isinstance(properties[key], dict):
+            res = generate_uid(properties[key], ranged_properties[key])
+        else:
+            ranged_values.append("%s-%s" % (key, properties[key]))
+
+    if len(ranged_values) != 0:
+        res = res + '_'.join(ranged_values)
+    elif res == "":
+        res = "prozess"
+    return res

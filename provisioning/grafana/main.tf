@@ -3,6 +3,7 @@ variable "key-name" {}
 variable "owner" {}
 variable "ownershort" {}
 variable "key-file" {}
+variable "test-name" {}
 
 variable "grafana-instance-type" {
   default = "t2.small"
@@ -10,6 +11,10 @@ variable "grafana-instance-type" {
 
 provider "aws" {
   region = "${var.region}"
+}
+
+variable "grafana-count" {
+  default = 1
 }
 
 data "aws_ami" "rhel7" {
@@ -30,7 +35,7 @@ data "aws_ami" "rhel7" {
 
 resource "aws_security_group" "grafana" {
   description = "Grafana - Managed by DerProzess"
-  name        = "${terraform.workspace}-${var.ownershort}-grafana"
+  name        = "${var.test-name}-${var.ownershort}-grafana"
 
   ingress {
     from_port   = 22
@@ -62,7 +67,7 @@ resource "aws_security_group" "grafana" {
 }
 
 resource "aws_instance" "grafana" {
-  count         = "1"
+  count         = "${var.grafana-count}"
   ami           = "${data.aws_ami.rhel7.id}"
   instance_type = "${var.grafana-instance-type}"
 
@@ -122,9 +127,9 @@ resource "aws_instance" "grafana" {
 }
 
 output "grafana_public_dns" {
-  value = "${aws_instance.grafana.0.public_dns}"
+  value = "${var.grafana-count > 0 ? join("", aws_instance.grafana.*.public_dns) : "localhost"}"
 }
 
 output "influxdb_public_dns" {
-  value = "${aws_instance.grafana.0.public_dns}"
+  value = "${var.grafana-count > 0 ? join("", aws_instance.grafana.*.public_dns) : "localhost"}"
 }

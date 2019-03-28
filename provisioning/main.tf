@@ -42,13 +42,19 @@ variable "test-name" {
   default = "results"
 }
 
+variable "grafana-enabled" {
+  default = true
+}
+
 module "grafana" {
-  source     = "./grafana"
-  region     = "${var.region}"
-  owner      = "${var.owner}"
-  ownershort = "${var.ownershort}"
-  key-file   = "${var.key-file}"
-  key-name   = "${var.keyname}"
+  source        = "./grafana"
+  region        = "${var.region}"
+  owner         = "${var.owner}"
+  ownershort    = "${var.ownershort}"
+  key-file      = "${var.key-file}"
+  key-name      = "${var.keyname}"
+  test-name     = "${var.test-name}"
+  grafana-count = "${var.grafana-enabled ? 1 : 0}"
 }
 
 module "kafka-cluster" {

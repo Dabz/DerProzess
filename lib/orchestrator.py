@@ -26,39 +26,57 @@ class CloudOrchestrator:
     test_name = ""
     test_type = ""
 
-    def __init__(self, json_data, tests, destroy=True):
+    def __init__(self, tests, destroy=True):
         self.destroy = destroy
         self.tests = tests
         self.configuration_to_test = []
-        self.properties = {}
-        self.ranged_properties = {}
-        (self.properties, self.ranged_properties) = p.parse_properties(p.CONF["cloud"])
-        (self.properties, self.ranged_properties) = p.parse_properties(json_data,
-                                                                       self.properties,
-                                                                       self.ranged_properties)
+        (self.properties, self.ranged_properties) = p.parse_properties(p.CONF)
+        for test in tests:
+            (self.properties, self.ranged_properties) = p.parse_properties(test,
+                                                                           self.properties,
+                                                                           self.ranged_properties)
 
         for properties in p.gen_properties_to_test(self.properties, self.ranged_properties):
             self.configuration_to_test.append(properties)
 
     def run(self):
+        threads = []
         for properties in self.configuration_to_test:
-            provisioner = provision.Provision(properties, self.ranged_properties)
+            test = CloudOrchestrator.CloudTest(properties, self.ranged_properties, self.destroy)
+            test.start()
+            threads.append(test)
+
+            if len(threads) >= 4:
+                for test in threads:
+                    test.join()
+                threads = []
+
+        for test in threads:
+            test.join()
+
+    class CloudTest(Thread):
+        def __init__(self, prop, ranged_prop, destroy):
+            self.status = "NOT_STARTED"
+            self.properties = prop
+            self.ranged_properties = ranged_prop
+            self.test_name = p.generate_uid(prop, ranged_prop)
+            self.destroy = destroy
+            Thread.__init__(self)
+
+        def run(self):
+            self.status = "PROVISIONING"
+            provisioner = provision.Provision(self.properties, self.test_name)
             section(provisioner.sweet_name())
-            print(bold("Configuration"))
-            print(json.dumps(properties, indent=2))
-            print(plain(bold("Provisioning ")))
             provisioner.apply_if_required()
-            print(plain(bold("Benchmarking")))
-            self.run_for_environment(provisioner)
-            if self.destroy:
-                print(plain(bold("Destroying")))
-                provisioner.destroy()
-
-        if not self.destroy:
-            print(plain(blink(underline("Don't forget to destroy the provisioned resources! (python delete.py)"))))
-
-    def run_for_environment(self, environment):
-        output_folder = "results_%s" % (environment.sweet_name())
-        for test in self.tests:
-            exe = executor_cloud.CloudExecutor(test, environment, output_folder)
+            self.status = "TESTING"
+            output_folder = "results_%s" % (provisioner.sweet_name())
+            exe = executor_cloud.CloudExecutor(self.properties, self.ranged_properties, provisioner, output_folder, self.test_name)
             exe.run()
+            if self.destroy:
+                self.status = "DESTROYING"
+                provisioner.destroy()
+                self.status = "DESTROYED"
+
+
+
+

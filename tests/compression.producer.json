@@ -9,6 +9,6 @@
   }, 
 	"brokers": {
 		"count": 3,
-		"instance-type": [ "t2.large", "t2.xlarge" ]"
+		"instance-type": [ "t2.large", "t2.xlarge" ]
 	}
 }

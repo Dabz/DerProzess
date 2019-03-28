@@ -53,7 +53,7 @@ data "aws_ami" "rhel7" {
 
 resource "aws_security_group" "drivers" {
   description = "drivers - Managed by DerProzess"
-  name        = "${terraform.workspace}-${var.ownershort}-drivers"
+  name        = "${var.test-name}-${var.ownershort}-drivers"
 
   ingress {
     from_port   = 22
@@ -72,7 +72,7 @@ resource "aws_security_group" "drivers" {
 
 resource "aws_security_group" "brokers" {
   description = "brokers - Managed by DerProzess"
-  name        = "${terraform.workspace}-${var.ownershort}-brokers"
+  name        = "${var.test-name}-${var.ownershort}-brokers"
 
   # client connections from hosts, my ip, clients
   ingress {
@@ -108,7 +108,7 @@ resource "aws_security_group" "brokers" {
 
 resource "aws_security_group" "zookeepers" {
   description = "zookeeper - Managed by DerProzess"
-  name        = "${terraform.workspace}-${var.ownershort}-zookeeper"
+  name        = "${var.test-name}-${var.ownershort}-zookeeper"
 
   # zookeeper connections hosts, my ip, clients
   ingress {
@@ -161,10 +161,10 @@ resource "aws_instance" "zookeepers" {
   }
 
   tags {
-    Name          = "${terraform.workspace}-${var.ownershort}-zookeeper-${count.index}"
-    description   = "zookeeper node - Managed by DerProzess (${terraform.workspace})"
-    nice-name     = "${terraform.workspace}-zookeeper-${count.index}"
-    big-nice-name = "${terraform.workspace}-zookeeper-${count.index}"
+    Name          = "${var.test-name}-${var.ownershort}-zookeeper-${count.index}"
+    description   = "zookeeper node - Managed by DerProzess (${var.test-name})"
+    nice-name     = "${var.test-name}-zookeeper-${count.index}"
+    big-nice-name = "${var.test-name}-zookeeper-${count.index}"
     role          = "zookeeper"
     owner         = "${var.owner}"
     sshUser       = "ec2-user"
@@ -221,10 +221,10 @@ resource "aws_instance" "brokers" {
   }
 
   tags {
-    Name          = "${terraform.workspace}-${var.ownershort}-broker-${count.index}"
+    Name          = "${var.test-name}-${var.ownershort}-broker-${count.index}"
     description   = "broker node - Managed by DerProzess"
-    nice-name     = "${terraform.workspace}-broker-${count.index}"
-    big-nice-name = "${terraform.workspace}-broker-${count.index}"
+    nice-name     = "${var.test-name}-broker-${count.index}"
+    big-nice-name = "${var.test-name}-broker-${count.index}"
     role          = "broker"
     owner         = "${var.owner}"
     sshUser       = "ec2-user"
@@ -276,10 +276,10 @@ resource "aws_instance" "drivers" {
   key_name        = "${var.key-name}"
 
   tags {
-    Name          = "${terraform.workspace}-${var.ownershort}-driver-${count.index}"
+    Name          = "${var.test-name}-${var.ownershort}-driver-${count.index}"
     description   = "driver node - Managed by DerProzess"
-    nice-name     = "${terraform.workspace}-driver-${count.index}"
-    big-nice-name = "${terraform.workspace}-driver-${count.index}"
+    nice-name     = "${var.test-name}-driver-${count.index}"
+    big-nice-name = "${var.test-name}-driver-${count.index}"
     role          = "driver"
     owner         = "${var.owner}"
     sshUser       = "ec2-user"

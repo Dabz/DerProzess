@@ -35,6 +35,7 @@ install_telegraf() {
 
 build_package() {
 	sudo wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo
+	sudo yum-config-manager --enable rhui-REGION-rhel-server-extras rhui-REGION-rhel-server-optional
 	sudo yum install -y java-1.8.0-openjdk-devel
 	sudo yum install -y apache-maven
 	cd /home/ec2-user/driver/

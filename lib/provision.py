@@ -11,13 +11,11 @@ Terraform Binding
 """
 
 import python_terraform
-import threading
 import hashlib
-import string
+import os
+from distutils.dir_util import copy_tree
 
-WORKING_DIR = "./provisioning"
-
-terraform_lock = threading.Lock()
+TERRAFORM_SOURCE_DIR = "./provisioning"
 
 
 def fingerprint_from_configuration(cloud_conf):
@@ -32,48 +30,37 @@ def fingerprint_from_configuration(cloud_conf):
     return str(ha.hexdigest())
 
 
+def workspace_with_fingerprint(cloud_conf):
+    target_fingerprint = fingerprint_from_configuration(cloud_conf)
+    for directory in os.listdir("./"):
+        if os.path.exists("%s/main.tf" % directory):
+            terraform = python_terraform.Terraform(working_dir=directory)
+            workspace_fingerprint = terraform.output("fingerprint")
+            if workspace_fingerprint == target_fingerprint:
+                return directory
+
+    return None
+
+
 class Provision:
 
-    def __init__(self, cloud_conf, ranged_properties):
-        self.cloud_conf = cloud_conf
-        self.terraform = python_terraform.Terraform(working_dir=WORKING_DIR)
-        workspace = self.workspace_with_fingerprint(cloud_conf)
+    def __init__(self, properties, uid):
+        self.cloud_conf = properties["brokers"]
+        self.uid = uid
+        workspace = workspace_with_fingerprint(self.cloud_conf)
+
         if workspace is None:
-            self.uid = self.generate_uid(cloud_conf, ranged_properties)
-            self.terraform.workspace("new", self.uid)
+            if not os.path.exists(self.uid):
+                copy_tree(src=TERRAFORM_SOURCE_DIR,
+                          dst=self.uid)
+
+            self.terraform = python_terraform.Terraform(working_dir=self.uid)
+            self.terraform.init()
             self.provisioned = False
         else:
+            self.terraform = python_terraform.Terraform(working_dir=workspace)
             self.uid = workspace
             self.provisioned = True
-
-    def generate_uid(self, cloud_conf, ranged_properties):
-        ranged_values = []
-        for ranged_propertie in ranged_properties:
-            ranged_values.append("%s-%s" % (ranged_propertie, cloud_conf[ranged_propertie]))
-        return '_'.join(ranged_values)
-
-    def workspace_with_fingerprint(self, cloud_conf):
-        workspaces_raw = str(self.terraform.workspace("list")[1])
-        workspaces = workspaces_raw.splitlines()
-        target_fingerprint = fingerprint_from_configuration(cloud_conf)
-
-        for workspace in workspaces:
-            workspace = workspace.replace("*", "")
-            workspace = workspace.strip()
-            if workspace == "default":
-                continue
-            if workspace == "":
-                continue
-
-            terraform_lock.acquire()
-            self.terraform.workspace("select", workspace)
-            workspace_fingerprint = self.terraform.output("fingerprint")
-            if workspace_fingerprint == target_fingerprint:
-                terraform_lock.release()
-                return workspace
-            terraform_lock.release()
-
-        return None
 
     def apply_if_required(self):
         if not self.provisioned:
@@ -83,9 +70,7 @@ class Provision:
         """
         Provision the environment in a dedicated workspace
         """
-        terraform_lock.acquire()
         self.provisioned = True
-        self.terraform.workspace("select", self.uid)
         self.terraform.apply(skip_plan=True, var={
             "broker-count": self.cloud_conf["broker-count"],
             "test-name": self.uid,
@@ -97,17 +82,12 @@ class Provision:
             "region": self.cloud_conf["region"],
             "broker-instance-type": self.cloud_conf['broker-instance-type'],
             "driver-instance-type": self.cloud_conf['driver-instance-type'],
-            "fingerprint": fingerprint_from_configuration(self.cloud_conf)
+            "fingerprint": fingerprint_from_configuration(self.cloud_conf),
+            "grafana-enabled": False
         })
-        terraform_lock.release()
 
     def destroy(self):
-        terraform_lock.acquire()
-        self.terraform.workspace("select", self.uid)
         self.terraform.destroy(force=True)
-        self.terraform.workspace("select", "default")
-        self.terraform.workspace("delete", self.uid)
-        terraform_lock.release()
 
     def sweet_name(self):
         return self.uid
@@ -120,37 +100,18 @@ class Provision:
     def bootstrap_servers(self):
         config = {}
 
-        terraform_lock.acquire()
-
-        self.terraform.workspace("select", self.uid)
         brokers = self.terraform.output("kafka-brokers-private-dns")
         bootstrapped = ""
         for broker in brokers:
             bootstrapped = bootstrapped + "," + broker + ":9092"
         bootstrapped = bootstrapped[1:]
 
-        terraform_lock.release()
-
         return bootstrapped
 
     def driver_host(self):
-        config = {}
-
-        terraform_lock.acquire()
-
-        self.terraform.workspace("select", self.uid)
         drivers = self.terraform.output("kafka-driver-public-dns")
-        terraform_lock.release()
-
         return drivers
 
     def broker_host(self):
-        config = {}
-
-        terraform_lock.acquire()
-
-        self.terraform.workspace("select", self.uid)
         brokers = self.terraform.output("kafka-brokers-public-dns")
-        terraform_lock.release()
-
         return brokers

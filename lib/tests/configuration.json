@@ -8,7 +8,7 @@
 	"local": {
 		"bootstrap.servers": "localhost:9092"
 	},
-	"brokers": {
+	"cloud": {
 		"region": "eu-west-3",
 		"ssh-key": "/home/gaspar_d/.ssh/damien-paris.pem",
 		"ssh-keyname": "damien-paris",
