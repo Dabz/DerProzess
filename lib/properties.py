@@ -141,7 +141,7 @@ def gen_properties_to_test(properties, ranged_properties):
             if key in to_yield:
                 to_yield[key].update(values.copy())
             else:
-                to_yield[key] = values.copy()
+                to_yield[key] = copy.copy(values)
         yield to_yield
 
 
